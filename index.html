@@ -17,6 +17,11 @@
 
     <title>My Habit Tracker</title>
 
+    <!-- App Logo / Favicon / PWA -->
+    <link rel="icon" type="image/png" href="./logo.png?v=2">
+    <link rel="apple-touch-icon" href="./logo.png?v=2">
+    <link rel="manifest" href="./manifest.json">
+
     <link
         rel="stylesheet"
         href="style.css"
@@ -27,10 +32,79 @@
         src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"
     ></script>
 
+    <style>
+        .app-logo {
+            display: block;
+            object-fit: cover;
+        }
+
+        .logo-fallback {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2563eb, #22c55e);
+            font-size: 34px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .logo-fallback {
+                width: 52px;
+                height: 52px;
+                border-radius: 15px;
+                font-size: 28px;
+            }
+        }
+    </style>
+
 </head>
 
 
 <body>
+
+
+<!-- =====================================================
+     YEAR & MONTH SIDEBAR
+===================================================== -->
+
+<div
+    id="sidebarBackdrop"
+    class="sidebar-backdrop"
+    onclick="closeSidebar()"
+></div>
+
+<aside
+    id="yearSidebar"
+    class="year-sidebar"
+    aria-label="Year and Month Navigation"
+>
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <span class="folder-header-icon">📂</span>
+            <div>
+                <h3>Year Archive</h3>
+                <p>Browse months and view streaks</p>
+            </div>
+        </div>
+        <button
+            class="sidebar-close-btn"
+            onclick="closeSidebar()"
+            title="Close sidebar"
+            aria-label="Close sidebar"
+        >
+            ✕
+        </button>
+    </div>
+
+    <div
+        id="sidebarYearsList"
+        class="sidebar-years-list"
+    >
+        <!-- Generated dynamically by script.js -->
+    </div>
+</aside>
 
 
 <!-- =====================================================
@@ -41,26 +115,42 @@
 
     <div class="brand">
 
-        <div class="brand-icon">
-            ✓
+        <img
+            src="./logo.png?v=2"
+            alt="My Habit Tracker Logo"
+            class="app-logo"
+            width="64"
+            height="64"
+            onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';"
+        >
+
+        <div
+            id="logoFallback"
+            class="logo-fallback"
+            aria-hidden="true"
+            style="display:none;"
+        >
+            🌱
         </div>
 
-        <div>
-
-            <h1>
-                My Habit Tracker
-            </h1>
-
-            <p>
-                Build better habits, one day at a time.
-            </p>
-
+        <div class="brand-text">
+            <h1>My Habit Tracker</h1>
+            <p>Small habits. Big results.</p>
         </div>
 
     </div>
 
 
     <div class="header-actions">
+
+        <button
+            id="sidebarToggleBtn"
+            class="btn sidebar-btn"
+            onclick="toggleSidebar()"
+            title="Open Year & Month Archive"
+        >
+            📁 Years &amp; Months
+        </button>
 
         <button
             id="installAppButton"
@@ -105,22 +195,26 @@
     <button
         class="month-arrow"
         onclick="changeMonth(-1)"
+        title="Previous Month"
     >
         ‹
     </button>
 
 
-    <div
+    <button
         id="monthTitle"
-        class="month-title"
+        class="month-title month-title-clickable"
+        onclick="toggleSidebar()"
+        title="Click to browse all Years and Months"
     >
         October 2026
-    </div>
+    </button>
 
 
     <button
         class="month-arrow"
         onclick="changeMonth(1)"
+        title="Next Month"
     >
         ›
     </button>

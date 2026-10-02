@@ -276,7 +276,7 @@ function renderMonthTitle() {
         return;
 
 
-    element.textContent =
+    const titleText =
         selectedDate.toLocaleDateString(
             "en-US",
             {
@@ -284,6 +284,8 @@ function renderMonthTitle() {
                 year: "numeric"
             }
         );
+
+    element.innerHTML = `${titleText} <span class="month-dropdown-hint" style="font-size:12px;opacity:0.6;margin-left:4px;">▾</span>`;
 
 }
 
@@ -4781,6 +4783,7 @@ document.addEventListener(
         ) {
 
             closeAddModal();
+            closeSidebar();
 
         }
 
@@ -4985,6 +4988,222 @@ function registerServiceWorker() {
 
 
 /* =========================================================
+   YEAR & MONTH SIDEBAR ARCHIVE
+========================================================= */
+
+let expandedYears = new Set([selectedDate.getFullYear()]);
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("yearSidebar");
+    if (!sidebar) return;
+    const isOpen = sidebar.classList.contains("show");
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
+}
+
+function openSidebar() {
+    const sidebar = document.getElementById("yearSidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    if (sidebar) sidebar.classList.add("show");
+    if (backdrop) backdrop.classList.add("show");
+    renderYearSidebar();
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById("yearSidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    if (sidebar) sidebar.classList.remove("show");
+    if (backdrop) backdrop.classList.remove("show");
+}
+
+function toggleYearFolder(year) {
+    if (expandedYears.has(year)) {
+        expandedYears.delete(year);
+    } else {
+        expandedYears.add(year);
+    }
+    renderYearSidebar();
+}
+
+function selectMonthFromSidebar(year, monthIndex) {
+    selectedDate = new Date(year, monthIndex, 1);
+    expandedYears.add(year);
+    render();
+    if (window.innerWidth < 1024) {
+        closeSidebar();
+    }
+    const habitsSection = document.getElementById("tasksContainer");
+    if (habitsSection) {
+        habitsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    const monthName = selectedDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    showToast(`Viewing ${monthName} daily habits 📅`);
+}
+
+function getAvailableYears() {
+    const yearsSet = new Set();
+    const currentYear = new Date().getFullYear();
+    yearsSet.add(currentYear);
+    yearsSet.add(selectedDate.getFullYear());
+    yearsSet.add(currentYear - 1);
+
+    if (data && data.tasks) {
+        data.tasks.forEach(task => {
+            if (task.completions) {
+                Object.keys(task.completions).forEach(key => {
+                    const y = parseInt(key.substring(0, 4), 10);
+                    if (!isNaN(y)) yearsSet.add(y);
+                });
+            }
+        });
+    }
+
+    return Array.from(yearsSet).sort((a, b) => b - a);
+}
+
+function getMonthStreak(year, monthIndex) {
+    let maxStreak = 0;
+    if (!data.tasks || data.tasks.length === 0) return 0;
+
+    const daysCount = daysInMonth(year, monthIndex);
+
+    data.tasks.forEach(task => {
+        let current = 0;
+        for (let d = 1; d <= daysCount; d++) {
+            const date = new Date(year, monthIndex, d);
+            const key = dateKey(date);
+            if (!isFutureDate(date) && task.completions && task.completions[key]) {
+                current++;
+                if (current > maxStreak) {
+                    maxStreak = current;
+                }
+            } else {
+                current = 0;
+            }
+        }
+    });
+
+    return maxStreak;
+}
+
+function getMonthCompletionStats(year, monthIndex) {
+    let completed = 0;
+    let eligible = 0;
+    if (!data.tasks || data.tasks.length === 0) {
+        return { completed: 0, eligible: 0, rate: 0 };
+    }
+
+    const daysCount = daysInMonth(year, monthIndex);
+
+    data.tasks.forEach(task => {
+        for (let d = 1; d <= daysCount; d++) {
+            const date = new Date(year, monthIndex, d);
+            if (!isFutureDate(date)) {
+                eligible++;
+                const key = dateKey(date);
+                if (task.completions && task.completions[key]) {
+                    completed++;
+                }
+            }
+        }
+    });
+
+    const rate = eligible > 0 ? Math.round((completed / eligible) * 100) : 0;
+    return { completed, eligible, rate };
+}
+
+function renderYearSidebar() {
+    const container = document.getElementById("sidebarYearsList");
+    if (!container) return;
+
+    const years = getAvailableYears();
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const currentSelectedYear = selectedDate.getFullYear();
+    const currentSelectedMonth = selectedDate.getMonth();
+
+    let html = "";
+
+    years.forEach(year => {
+        const isExpanded = expandedYears.has(year);
+        const folderGlyph = isExpanded ? "📂" : "📁";
+        const chevron = isExpanded ? "▾" : "▸";
+
+        let totalYearCompleted = 0;
+        if (data.tasks) {
+            data.tasks.forEach(task => {
+                totalYearCompleted += getYearTaskCompleted(task, year);
+            });
+        }
+
+        html += `
+            <div class="year-folder ${isExpanded ? "expanded" : ""}">
+                <button
+                    class="year-folder-header"
+                    onclick="toggleYearFolder(${year})"
+                    aria-expanded="${isExpanded}"
+                    title="Click to expand/collapse ${year}"
+                >
+                    <div class="year-folder-title">
+                        <span class="folder-glyph">${folderGlyph}</span>
+                        <span class="year-num">${year}</span>
+                    </div>
+                    <div class="year-folder-meta">
+                        <span class="year-badge">${totalYearCompleted} done</span>
+                        <span class="folder-chevron">${chevron}</span>
+                    </div>
+                </button>
+
+                <div class="year-months-list" style="display: ${isExpanded ? 'flex' : 'none'};">
+        `;
+
+        for (let m = 0; m < 12; m++) {
+            const isSelected = (year === currentSelectedYear && m === currentSelectedMonth);
+            const streak = getMonthStreak(year, m);
+            const stats = getMonthCompletionStats(year, m);
+            const mName = monthNames[m];
+
+            html += `
+                <div
+                    class="sidebar-month-item ${isSelected ? "active" : ""}"
+                    onclick="selectMonthFromSidebar(${year}, ${m})"
+                    role="button"
+                    tabindex="0"
+                    title="${mName} ${year} - ${stats.completed} completions, ${streak} day streak"
+                >
+                    <div class="month-item-main">
+                        <span class="month-item-bullet">${isSelected ? "●" : "○"}</span>
+                        <span class="month-item-name">${mName}</span>
+                    </div>
+                    <div class="month-item-badges">
+                        <span class="month-streak-badge" title="Best streak in this month">
+                            🔥 ${streak}d
+                        </span>
+                        <span class="month-rate-badge" title="${stats.completed} completed (${stats.rate}%)">
+                            ${stats.rate}%
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+
+/* =========================================================
    MAIN RENDER
 ========================================================= */
 
@@ -5013,6 +5232,8 @@ function render() {
     renderGoals();
 
     renderTasks();
+
+    renderYearSidebar();
 
 }
 
