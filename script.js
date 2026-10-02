@@ -1,20 +1,42 @@
 /* =========================================================
-   HABIT TRACKER
+   MY HABIT TRACKER
+   FINAL VERSION
 ========================================================= */
-
-const STORAGE_KEY = "myHabitTracker_v3";
-
-let data = loadData();
-
-let selectedDate = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-);
 
 
 /* =========================================================
    STORAGE
+========================================================= */
+
+const STORAGE_KEY =
+    "myHabitTracker_v3";
+
+
+let data =
+    loadData();
+
+
+let selectedDate =
+    new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+    );
+
+
+let selectedJournalDate =
+    new Date();
+
+
+let statisticsYear =
+    new Date().getFullYear();
+
+
+let toastTimer = null;
+
+
+/* =========================================================
+   LOAD DATA
 ========================================================= */
 
 function loadData() {
@@ -22,44 +44,99 @@ function loadData() {
     try {
 
         const saved =
-            localStorage.getItem(STORAGE_KEY);
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
 
         if (saved) {
 
-            return JSON.parse(saved);
+            const parsed =
+                JSON.parse(saved);
+
+
+            if (
+                parsed &&
+                Array.isArray(
+                    parsed.tasks
+                )
+            ) {
+
+                if (
+                    !parsed.journal
+                ) {
+
+                    parsed.journal = {};
+
+                }
+
+
+                return parsed;
+
+            }
 
         }
 
-    } catch (error) {
+    }
+    catch (error) {
 
-        console.error(error);
+        console.error(
+            "Error loading data:",
+            error
+        );
 
     }
 
+
     return {
-        tasks: []
+
+        tasks: [],
+
+        journal: {}
+
     };
 
 }
 
 
+/* =========================================================
+   SAVE DATA
+========================================================= */
+
 function saveData() {
 
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(data)
-    );
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(data)
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Error saving data:",
+            error
+        );
+
+        showToast(
+            "Unable to save data."
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   DATE FUNCTIONS
+   DATE HELPERS
 ========================================================= */
 
-function pad(number) {
+function pad(value) {
 
-    return String(number).padStart(2, "0");
+    return String(value)
+        .padStart(2, "0");
 
 }
 
@@ -69,17 +146,14 @@ function dateKey(date) {
     return (
         date.getFullYear() +
         "-" +
-        pad(date.getMonth() + 1) +
+        pad(
+            date.getMonth() + 1
+        ) +
         "-" +
-        pad(date.getDate())
+        pad(
+            date.getDate()
+        )
     );
-
-}
-
-
-function todayKey() {
-
-    return dateKey(new Date());
 
 }
 
@@ -89,13 +163,27 @@ function monthKey(date) {
     return (
         date.getFullYear() +
         "-" +
-        pad(date.getMonth() + 1)
+        pad(
+            date.getMonth() + 1
+        )
     );
 
 }
 
 
-function daysInMonth(year, month) {
+function todayKey() {
+
+    return dateKey(
+        new Date()
+    );
+
+}
+
+
+function daysInMonth(
+    year,
+    month
+) {
 
     return new Date(
         year,
@@ -106,51 +194,129 @@ function daysInMonth(year, month) {
 }
 
 
+function isSameDay(
+    a,
+    b
+) {
+
+    return (
+        a.getFullYear() ===
+            b.getFullYear() &&
+
+        a.getMonth() ===
+            b.getMonth() &&
+
+        a.getDate() ===
+            b.getDate()
+    );
+
+}
+
+
+function isFutureDate(
+    date
+) {
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const compare =
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        );
+
+
+    return compare > today;
+
+}
+
+
 /* =========================================================
    MONTH NAVIGATION
 ========================================================= */
 
-function changeMonth(amount) {
+function changeMonth(
+    amount
+) {
 
-    selectedDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() + amount,
-        1
-    );
+    selectedDate =
+        new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth() +
+                amount,
+            1
+        );
+
 
     render();
 
 }
 
 
-function goToday() {
+function renderMonthTitle() {
 
-    const now = new Date();
+    const element =
+        document.getElementById(
+            "monthTitle"
+        );
 
-    selectedDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-    );
 
-    render();
+    if (!element)
+        return;
+
+
+    element.textContent =
+        selectedDate.toLocaleDateString(
+            "en-US",
+            {
+                month: "long",
+                year: "numeric"
+            }
+        );
 
 }
 
 
 /* =========================================================
-   ADD TASK
+   ADD HABIT
 ========================================================= */
 
 function openAddModal() {
 
-    document
-        .getElementById("addModal")
-        .classList.add("show");
+    const modal =
+        document.getElementById(
+            "addModal"
+        );
 
-    document
-        .getElementById("taskName")
-        .focus();
+
+    modal.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            document
+                .getElementById(
+                    "taskName"
+                )
+                .focus();
+
+        },
+        100
+    );
 
 }
 
@@ -158,42 +324,61 @@ function openAddModal() {
 function closeAddModal() {
 
     document
-        .getElementById("addModal")
-        .classList.remove("show");
+        .getElementById(
+            "addModal"
+        )
+        .classList.remove(
+            "show"
+        );
 
 }
 
 
-function createTask() {
+function addTask() {
 
     const name =
         document
-            .getElementById("taskName")
+            .getElementById(
+                "taskName"
+            )
             .value
             .trim();
+
 
     const icon =
         document
-            .getElementById("taskIcon")
+            .getElementById(
+                "taskIcon"
+            )
             .value
-            .trim() || "⭐";
+            .trim() ||
+        "🎯";
+
 
     const target =
-        document
-            .getElementById("taskTarget")
-            .value;
+        Number(
+            document
+                .getElementById(
+                    "taskTarget"
+                )
+                .value
+        ) || 1;
+
 
     const unit =
         document
-            .getElementById("taskUnit")
+            .getElementById(
+                "taskUnit"
+            )
             .value
-            .trim();
+            .trim() ||
+        "time";
 
 
     if (!name) {
 
         showToast(
-            "Please enter a task name."
+            "Please enter a habit name."
         );
 
         return;
@@ -204,96 +389,147 @@ function createTask() {
     const task = {
 
         id:
-            Date.now().toString(36) +
-            Math.random()
-                .toString(36)
-                .substring(2),
+            Date.now().toString(),
 
-        name: name,
+        name:
+            name,
 
-        icon: icon,
+        icon:
+            icon,
 
         target:
-            target
-                ? Number(target)
-                : null,
+            target,
 
-        unit: unit,
+        unit:
+            unit,
 
-        createdAt:
-            todayKey(),
+        completions:
+            {},
 
-        records: {}
+        reminder: {
+
+            enabled:
+                false,
+
+            time:
+                "20:00"
+
+        },
+
+        goal: {
+
+            target:
+                30,
+
+            type:
+                "days"
+
+        }
 
     };
 
 
-    data.tasks.push(task);
+    data.tasks.push(
+        task
+    );
+
 
     saveData();
 
-    document.getElementById("taskName").value = "";
-
-    document.getElementById("taskIcon").value = "⭐";
-
-    document.getElementById("taskTarget").value = "";
-
-    document.getElementById("taskUnit").value = "";
 
     closeAddModal();
 
+
+    document.getElementById(
+        "taskName"
+    ).value = "";
+
+
+    document.getElementById(
+        "taskIcon"
+    ).value = "🎯";
+
+
+    document.getElementById(
+        "taskTarget"
+    ).value = 1;
+
+
+    document.getElementById(
+        "taskUnit"
+    ).value = "time";
+
+
     render();
 
+
     showToast(
-        `${name} calendar created!`
+        "Habit added successfully 🎯"
     );
 
 }
 
 
 /* =========================================================
-   TOGGLE DAY
+   COMPLETION
 ========================================================= */
 
-function toggleDay(taskId, key) {
+function toggleDay(
+    taskId,
+    key
+) {
 
     const task =
         data.tasks.find(
-            t => t.id === taskId
+            item =>
+                item.id ===
+                taskId
         );
 
-    if (!task) return;
 
-
-    const clickedDate =
-        new Date(
-            key + "T00:00:00"
-        );
-
-    const today =
-        new Date();
-
-    today.setHours(0, 0, 0, 0);
-
-
-    if (clickedDate > today) {
-
-        showToast(
-            "Future dates cannot be marked."
-        );
-
+    if (!task)
         return;
+
+
+    if (!task.completions) {
+
+        task.completions = {};
 
     }
 
 
-    task.records[key] =
-        !task.records[key];
+    if (
+        task.completions[key]
+    ) {
+
+        delete task.completions[
+            key
+        ];
+
+    }
+    else {
+
+        task.completions[key] =
+            true;
+
+    }
 
 
     saveData();
 
+
     render();
+
+
+    if (
+        task.completions[key]
+    ) {
+
+        showToast(
+            `${task.icon} ${task.name} completed! 🔥`
+        );
+
+    }
 
 }
 
@@ -302,13 +538,17 @@ function toggleDay(taskId, key) {
    CALENDAR
 ========================================================= */
 
-function createCalendar(task) {
+function createCalendar(
+    task
+) {
 
     const year =
         selectedDate.getFullYear();
 
+
     const month =
         selectedDate.getMonth();
+
 
     const firstDay =
         new Date(
@@ -317,6 +557,7 @@ function createCalendar(task) {
             1
         ).getDay();
 
+
     const totalDays =
         daysInMonth(
             year,
@@ -324,28 +565,33 @@ function createCalendar(task) {
         );
 
 
-    let html = `
-
-        <div class="calendar">
-
-            <div class="weekdays">
-
-                <div class="weekday">S</div>
-                <div class="weekday">M</div>
-                <div class="weekday">T</div>
-                <div class="weekday">W</div>
-                <div class="weekday">T</div>
-                <div class="weekday">F</div>
-                <div class="weekday">S</div>
-
-            </div>
-
-            <div class="days">
-
-    `;
+    let html =
+        `<div class="calendar">`;
 
 
-    /* Empty days before month */
+    const weekdays = [
+        "S",
+        "M",
+        "T",
+        "W",
+        "T",
+        "F",
+        "S"
+    ];
+
+
+    weekdays.forEach(
+        day => {
+
+            html += `
+                <div class="calendar-head">
+                    ${day}
+                </div>
+            `;
+
+        }
+    );
+
 
     for (
         let i = 0;
@@ -353,14 +599,11 @@ function createCalendar(task) {
         i++
     ) {
 
-        html +=
-            `<div class="day empty"></div>`;
+        html += `
+            <div class="day empty"></div>
+        `;
 
     }
-
-
-    const today =
-        todayKey();
 
 
     for (
@@ -369,57 +612,85 @@ function createCalendar(task) {
         day++
     ) {
 
+        const date =
+            new Date(
+                year,
+                month,
+                day
+            );
+
+
         const key =
-            year +
-            "-" +
-            pad(month + 1) +
-            "-" +
-            pad(day);
+            dateKey(date);
 
 
         const completed =
-            task.records[key] === true;
+            Boolean(
+                task.completions &&
+                task.completions[key]
+            );
 
 
-        const isToday =
-            key === today;
+        const today =
+            isSameDay(
+                date,
+                new Date()
+            );
 
 
         const future =
-            new Date(
-                key + "T00:00:00"
-            ) >
-            new Date(
-                today + "T00:00:00"
+            isFutureDate(
+                date
             );
+
+
+        let classes =
+            "day";
+
+
+        if (completed) {
+
+            classes +=
+                " completed";
+
+        }
+
+
+        if (today) {
+
+            classes +=
+                " today";
+
+        }
+
+
+        if (future) {
+
+            classes +=
+                " future";
+
+        }
 
 
         html += `
 
             <div
-                class="day
-                ${completed ? "completed" : ""}
-                ${isToday ? "today" : ""}"
-                ${future ? "" :
-                    `onclick="toggleDay('${task.id}','${key}')"`
-                }
-            >
-
-                <div class="day-number">
-
-                    ${completed
-                        ? "✓"
-                        : day
-                    }
-
-                </div>
+                class="${classes}"
 
                 ${
-                    completed
-                        ? `<div class="check">✓</div>`
+                    !future
+                        ? `
+                            onclick="
+                                toggleDay(
+                                    '${task.id}',
+                                    '${key}'
+                                )
+                            "
+                          `
                         : ""
                 }
-
+            >
+                ${day}
             </div>
 
         `;
@@ -427,13 +698,8 @@ function createCalendar(task) {
     }
 
 
-    html += `
-
-            </div>
-
-        </div>
-
-    `;
+    html +=
+        `</div>`;
 
 
     return html;
@@ -442,53 +708,251 @@ function createCalendar(task) {
 
 
 /* =========================================================
-   CURRENT STREAK
+   DATE RANGE
 ========================================================= */
 
-function getCurrentStreak(task) {
+function getDateRange(
+    start,
+    end
+) {
 
-    const today =
-        new Date();
-
-    today.setHours(0, 0, 0, 0);
+    const result = [];
 
 
-    const created =
-        new Date(
-            task.createdAt +
-            "T00:00:00"
+    const current =
+        new Date(start);
+
+
+    current.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const final =
+        new Date(end);
+
+
+    final.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    while (
+        current <= final
+    ) {
+
+        result.push(
+            new Date(current)
         );
 
 
-    if (
-        !task.records[
-            dateKey(today)
-        ]
-    ) {
-
-        return 0;
+        current.setDate(
+            current.getDate() + 1
+        );
 
     }
 
 
+    return result;
+
+}
+
+
+/* =========================================================
+   RANGE STATS
+========================================================= */
+
+function isTaskEligible(
+    task,
+    date
+) {
+
+    return !isFutureDate(
+        date
+    );
+
+}
+
+
+function getTaskRangeStats(
+    task,
+    start,
+    end
+) {
+
+    const dates =
+        getDateRange(
+            start,
+            end
+        );
+
+
+    let completed = 0;
+
+    let eligible = 0;
+
+
+    dates.forEach(
+        date => {
+
+            if (
+                isTaskEligible(
+                    task,
+                    date
+                )
+            ) {
+
+                eligible++;
+
+
+                if (
+                    task.completions &&
+                    task.completions[
+                        dateKey(date)
+                    ]
+                ) {
+
+                    completed++;
+
+                }
+
+            }
+
+        }
+    );
+
+
+    return {
+
+        completed:
+            completed,
+
+        eligible:
+            eligible,
+
+        rate:
+            eligible
+                ? Math.round(
+                    (
+                        completed /
+                        eligible
+                    ) * 100
+                )
+                : 0
+
+    };
+
+}
+
+
+function getOverallRangeStats(
+    start,
+    end
+) {
+
+    let completed = 0;
+
+    let eligible = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            const stats =
+                getTaskRangeStats(
+                    task,
+                    start,
+                    end
+                );
+
+
+            completed +=
+                stats.completed;
+
+
+            eligible +=
+                stats.eligible;
+
+        }
+    );
+
+
+    return {
+
+        completed:
+            completed,
+
+        eligible:
+            eligible,
+
+        rate:
+            eligible
+                ? Math.round(
+                    (
+                        completed /
+                        eligible
+                    ) * 100
+                )
+                : 0
+
+    };
+
+}
+
+
+/* =========================================================
+   STREAKS
+========================================================= */
+
+function getCurrentStreak(
+    task
+) {
+
     let streak = 0;
 
-    let cursor =
-        new Date(today);
+
+    const current =
+        new Date();
 
 
-    while (
-        cursor >= created &&
-        task.records[
-            dateKey(cursor)
-        ] === true
-    ) {
+    current.setHours(
+        0,
+        0,
+        0,
+        0
+    );
 
-        streak++;
 
-        cursor.setDate(
-            cursor.getDate() - 1
-        );
+    while (true) {
+
+        const key =
+            dateKey(current);
+
+
+        if (
+            task.completions &&
+            task.completions[key]
+        ) {
+
+            streak++;
+
+
+            current.setDate(
+                current.getDate() - 1
+            );
+
+        }
+        else {
+
+            break;
+
+        }
 
     }
 
@@ -498,41 +962,145 @@ function getCurrentStreak(task) {
 }
 
 
-/* =========================================================
-   LONGEST STREAK
-========================================================= */
+function getLongestStreak(
+    task
+) {
 
-function getLongestStreak(task) {
+    if (
+        !task.completions
+    ) {
 
-    const today =
-        new Date();
+        return 0;
 
-    today.setHours(0, 0, 0, 0);
+    }
 
 
-    const created =
-        new Date(
-            task.createdAt +
-            "T00:00:00"
-        );
+    const dates =
+        Object.keys(
+            task.completions
+        )
+        .filter(
+            key =>
+                task.completions[key]
+        )
+        .sort();
 
 
     let longest = 0;
 
     let current = 0;
 
-    let cursor =
-        new Date(created);
+    let previous = null;
 
 
-    while (cursor <= today) {
+    dates.forEach(
+        key => {
+
+            const date =
+                new Date(
+                    key +
+                    "T00:00:00"
+                );
+
+
+            if (previous) {
+
+                const difference =
+                    (
+                        date -
+                        previous
+                    ) /
+                    (
+                        1000 *
+                        60 *
+                        60 *
+                        24
+                    );
+
+
+                if (
+                    difference === 1
+                ) {
+
+                    current++;
+
+                }
+                else {
+
+                    current = 1;
+
+                }
+
+            }
+            else {
+
+                current = 1;
+
+            }
+
+
+            longest =
+                Math.max(
+                    longest,
+                    current
+                );
+
+
+            previous =
+                date;
+
+        }
+    );
+
+
+    return longest;
+
+}
+
+
+function getYearLongestStreak(
+    task,
+    year
+) {
+
+    let longest = 0;
+
+    let current = 0;
+
+
+    const totalDays =
+        (
+            (
+                year % 4 === 0 &&
+                year % 100 !== 0
+            ) ||
+            year % 400 === 0
+        )
+            ? 366
+            : 365;
+
+
+    for (
+        let day = 1;
+        day <= totalDays;
+        day++
+    ) {
+
+        const date =
+            new Date(
+                year,
+                0,
+                day
+            );
+
 
         const key =
-            dateKey(cursor);
+            dateKey(date);
 
 
         if (
-            task.records[key] === true
+            task.completions &&
+            task.completions[key]
         ) {
 
             current++;
@@ -543,16 +1111,12 @@ function getLongestStreak(task) {
                     current
                 );
 
-        } else {
+        }
+        else {
 
             current = 0;
 
         }
-
-
-        cursor.setDate(
-            cursor.getDate() + 1
-        );
 
     }
 
@@ -562,17 +1126,84 @@ function getLongestStreak(task) {
 }
 
 
+function getStreakLabel(
+    streak
+) {
+
+    if (
+        streak >= 100
+    ) {
+
+        return "🏆 100 Day Legend";
+
+    }
+
+
+    if (
+        streak >= 50
+    ) {
+
+        return "👑 50 Day Master";
+
+    }
+
+
+    if (
+        streak >= 30
+    ) {
+
+        return "🔥 30 Day Champion";
+
+    }
+
+
+    if (
+        streak >= 14
+    ) {
+
+        return "⚡ 14 Day Warrior";
+
+    }
+
+
+    if (
+        streak >= 7
+    ) {
+
+        return "🔥 7 Day Streak";
+
+    }
+
+
+    if (
+        streak >= 3
+    ) {
+
+        return "✨ 3 Day Streak";
+
+    }
+
+
+    return "Start your streak";
+
+}
+
+
 /* =========================================================
-   MONTH COMPLETION
+   MONTHLY STATS
 ========================================================= */
 
-function getMonthCompleted(task) {
+function getMonthlyCompletion(
+    task
+) {
 
     const year =
         selectedDate.getFullYear();
 
+
     const month =
         selectedDate.getMonth();
+
 
     const total =
         daysInMonth(
@@ -581,7 +1212,9 @@ function getMonthCompleted(task) {
         );
 
 
-    let count = 0;
+    let completed = 0;
+
+    let eligible = 0;
 
 
     for (
@@ -590,41 +1223,73 @@ function getMonthCompleted(task) {
         day++
     ) {
 
-        const key =
-            year +
-            "-" +
-            pad(month + 1) +
-            "-" +
-            pad(day);
+        const date =
+            new Date(
+                year,
+                month,
+                day
+            );
 
 
         if (
-            task.records[key] === true
+            !isFutureDate(
+                date
+            )
         ) {
 
-            count++;
+            eligible++;
+
+
+            if (
+                task.completions &&
+                task.completions[
+                    dateKey(date)
+                ]
+            ) {
+
+                completed++;
+
+            }
 
         }
 
     }
 
 
-    return count;
+    return {
+
+        completed:
+            completed,
+
+        eligible:
+            eligible,
+
+        rate:
+            eligible
+                ? Math.round(
+                    (
+                        completed /
+                        eligible
+                    ) * 100
+                )
+                : 0
+
+    };
 
 }
 
 
-/* =========================================================
-   MONTH BEST STREAK
-========================================================= */
-
-function getMonthBestStreak(task) {
+function getMonthlyBestStreak(
+    task
+) {
 
     const year =
         selectedDate.getFullYear();
 
+
     const month =
         selectedDate.getMonth();
+
 
     const total =
         daysInMonth(
@@ -644,19 +1309,26 @@ function getMonthBestStreak(task) {
         day++
     ) {
 
+        const date =
+            new Date(
+                year,
+                month,
+                day
+            );
+
+
         const key =
-            year +
-            "-" +
-            pad(month + 1) +
-            "-" +
-            pad(day);
+            dateKey(date);
 
 
         if (
-            task.records[key] === true
+            !isFutureDate(date) &&
+            task.completions &&
+            task.completions[key]
         ) {
 
             current++;
+
 
             best =
                 Math.max(
@@ -664,7 +1336,8 @@ function getMonthBestStreak(task) {
                     current
                 );
 
-        } else {
+        }
+        else {
 
             current = 0;
 
@@ -679,61 +1352,2388 @@ function getMonthBestStreak(task) {
 
 
 /* =========================================================
-   STREAK LABEL
+   REMINDERS
 ========================================================= */
 
-function streakText(streak) {
+function ensureReminder(
+    task
+) {
 
-    if (streak >= 100) {
+    if (!task.reminder) {
 
-        return "👑 100 DAY";
+        task.reminder = {
 
-    }
+            enabled:
+                false,
 
-    if (streak >= 50) {
+            time:
+                "20:00"
 
-        return "🏆 50 DAY";
-
-    }
-
-    if (streak >= 30) {
-
-        return "🥇 30 DAY";
+        };
 
     }
 
-    if (streak >= 14) {
 
-        return "🟡 14 DAY";
+    if (
+        !task.reminder.time
+    ) {
 
-    }
-
-    if (streak >= 7) {
-
-        return "🟡 7 DAY";
+        task.reminder.time =
+            "20:00";
 
     }
 
-    if (streak >= 3) {
 
-        return `🔥 ${streak} DAY`;
+    if (
+        typeof task.reminder.enabled !==
+        "boolean"
+    ) {
+
+        task.reminder.enabled =
+            false;
 
     }
-
-    if (streak > 0) {
-
-        return `🔥 ${streak} DAY`;
-
-    }
-
-    return "No streak";
 
 }
 
 
-function isGold(streak) {
+function formatReminderTime(
+    time
+) {
 
-    return streak >= 7;
+    if (!time) {
+
+        return "8:00 PM";
+
+    }
+
+
+    const parts =
+        time.split(":");
+
+
+    let hour =
+        Number(parts[0]);
+
+
+    const minute =
+        parts[1] ||
+        "00";
+
+
+    const period =
+        hour >= 12
+            ? "PM"
+            : "AM";
+
+
+    hour =
+        hour % 12 ||
+        12;
+
+
+    return (
+        `${hour}:${minute} ${period}`
+    );
+
+}
+
+
+function toggleReminder(
+    taskId,
+    enabled
+) {
+
+    const task =
+        data.tasks.find(
+            item =>
+                item.id ===
+                taskId
+        );
+
+
+    if (!task)
+        return;
+
+
+    ensureReminder(task);
+
+
+    if (
+        enabled &&
+        "Notification" in window
+    ) {
+
+        if (
+            Notification.permission !==
+            "granted"
+        ) {
+
+            Notification
+                .requestPermission()
+                .then(
+                    permission => {
+
+                        if (
+                            permission ===
+                            "granted"
+                        ) {
+
+                            task.reminder.enabled =
+                                true;
+
+                            saveData();
+
+                            render();
+
+                            showToast(
+                                "Reminder enabled 🔔"
+                            );
+
+                        }
+                        else {
+
+                            task.reminder.enabled =
+                                false;
+
+                            saveData();
+
+                            render();
+
+                            showToast(
+                                "Notification permission was not granted."
+                            );
+
+                        }
+
+                    }
+                );
+
+            return;
+
+        }
+
+    }
+
+
+    task.reminder.enabled =
+        enabled;
+
+
+    saveData();
+
+
+    render();
+
+
+    showToast(
+        enabled
+            ? "Reminder enabled 🔔"
+            : "Reminder disabled"
+    );
+
+}
+
+
+function updateReminderTime(
+    taskId,
+    time
+) {
+
+    const task =
+        data.tasks.find(
+            item =>
+                item.id ===
+                taskId
+        );
+
+
+    if (!task)
+        return;
+
+
+    ensureReminder(task);
+
+
+    task.reminder.time =
+        time;
+
+
+    saveData();
+
+
+    renderTodayReminders();
+
+}
+
+
+function requestNotificationPermission() {
+
+    if (
+        !("Notification" in window)
+    ) {
+
+        showToast(
+            "Notifications are not supported by this browser."
+        );
+
+        return;
+
+    }
+
+
+    Notification
+        .requestPermission()
+        .then(
+            permission => {
+
+                if (
+                    permission ===
+                    "granted"
+                ) {
+
+                    showToast(
+                        "Notifications enabled 🔔"
+                    );
+
+                }
+                else {
+
+                    showToast(
+                        "Notification permission was not granted."
+                    );
+
+                }
+
+            }
+        );
+
+}
+
+
+function sendHabitNotification(
+    task
+) {
+
+    if (
+        !("Notification" in window)
+    )
+        return;
+
+
+    if (
+        Notification.permission !==
+        "granted"
+    )
+        return;
+
+
+    try {
+
+        new Notification(
+            "🔔 Habit Reminder",
+            {
+
+                body:
+                    `Time to complete ${task.icon} ${task.name}!`,
+
+                tag:
+                    `habit-${task.id}`
+
+            }
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            "Notification error:",
+            error
+        );
+
+    }
+
+}
+
+
+function checkReminders() {
+
+    const now =
+        new Date();
+
+
+    const currentTime =
+        `${pad(
+            now.getHours()
+        )}:${pad(
+            now.getMinutes()
+        )}`;
+
+
+    const today =
+        todayKey();
+
+
+    data.tasks.forEach(
+        task => {
+
+            ensureReminder(task);
+
+
+            if (
+                !task.reminder.enabled
+            )
+                return;
+
+
+            if (
+                task.reminder.time !==
+                currentTime
+            )
+                return;
+
+
+            if (
+                task.completions &&
+                task.completions[today]
+            )
+                return;
+
+
+            const sessionKey =
+                `habitReminder_${task.id}_${today}_${currentTime}`;
+
+
+            if (
+                sessionStorage.getItem(
+                    sessionKey
+                )
+            )
+                return;
+
+
+            sessionStorage.setItem(
+                sessionKey,
+                "1"
+            );
+
+
+            sendHabitNotification(
+                task
+            );
+
+        }
+    );
+
+}
+
+
+setInterval(
+    checkReminders,
+    10000
+);
+
+
+/* =========================================================
+   TODAY REMINDERS
+========================================================= */
+
+function renderTodayReminders() {
+
+    const container =
+        document.getElementById(
+            "todayReminders"
+        );
+
+
+    if (!container)
+        return;
+
+
+    const reminders =
+        data.tasks
+            .filter(
+                task => {
+
+                    ensureReminder(
+                        task
+                    );
+
+
+                    return (
+                        task.reminder.enabled
+                    );
+
+                }
+            )
+            .sort(
+                (a,b) =>
+                    a.reminder.time
+                        .localeCompare(
+                            b.reminder.time
+                        )
+            );
+
+
+    if (
+        reminders.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="no-reminders">
+
+                🔕 No reminders scheduled.
+
+                Enable a reminder on any
+                habit to see it here.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    const today =
+        todayKey();
+
+
+    container.innerHTML =
+        reminders
+            .map(
+                task => {
+
+                    const completed =
+                        Boolean(
+                            task.completions &&
+                            task.completions[
+                                today
+                            ]
+                        );
+
+
+                    return `
+
+                        <div
+                            class="
+                                reminder-item
+                                ${
+                                    completed
+                                        ? "completed"
+                                        : ""
+                                }
+                            "
+                        >
+
+                            <div class="reminder-item-icon">
+
+                                ${task.icon}
+
+                            </div>
+
+
+                            <div class="reminder-item-info">
+
+                                <strong>
+
+                                    ${escapeHTML(
+                                        task.name
+                                    )}
+
+                                </strong>
+
+                                <small>
+
+                                    🔔
+                                    ${formatReminderTime(
+                                        task.reminder.time
+                                    )}
+
+                                </small>
+
+                            </div>
+
+
+                            <div
+                                class="
+                                    reminder-status
+                                    ${
+                                        completed
+                                            ? "reminder-completed"
+                                            : ""
+                                    }
+                                "
+                            >
+
+                                ${
+                                    completed
+                                        ? "✓ Done"
+                                        : "Pending"
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+setInterval(
+    renderTodayReminders,
+    30000
+);
+
+
+/* =========================================================
+   JOURNAL
+========================================================= */
+
+function ensureJournal() {
+
+    if (!data.journal) {
+
+        data.journal = {};
+
+    }
+
+}
+
+
+function getJournal(
+    date
+) {
+
+    ensureJournal();
+
+
+    const key =
+        dateKey(date);
+
+
+    if (
+        !data.journal[key]
+    ) {
+
+        data.journal[key] = {
+
+            mood:
+                "",
+
+            energy:
+                0,
+
+            notes:
+                ""
+
+        };
+
+    }
+
+
+    return data.journal[key];
+
+}
+
+
+function initializeJournal() {
+
+    const input =
+        document.getElementById(
+            "journalDate"
+        );
+
+
+    if (!input)
+        return;
+
+
+    input.value =
+        dateKey(
+            selectedJournalDate
+        );
+
+
+    loadJournalForSelectedDate();
+
+}
+
+
+function loadJournalForSelectedDate() {
+
+    const input =
+        document.getElementById(
+            "journalDate"
+        );
+
+
+    if (
+        input &&
+        input.value
+    ) {
+
+        selectedJournalDate =
+            new Date(
+                input.value +
+                "T00:00:00"
+            );
+
+    }
+
+
+    const journal =
+        getJournal(
+            selectedJournalDate
+        );
+
+
+    document.getElementById(
+        "journalNotes"
+    ).value =
+        journal.notes ||
+        "";
+
+
+    document
+        .querySelectorAll(
+            ".mood-btn"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "selected",
+                    button.dataset.mood ===
+                    journal.mood
+                );
+
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".energy-btn"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "selected",
+                    Number(
+                        button.dataset.energy
+                    ) ===
+                    Number(
+                        journal.energy
+                    )
+                );
+
+            }
+        );
+
+}
+
+
+function selectMood(
+    mood
+) {
+
+    const journal =
+        getJournal(
+            selectedJournalDate
+        );
+
+
+    journal.mood =
+        mood;
+
+
+    document
+        .querySelectorAll(
+            ".mood-btn"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "selected",
+                    button.dataset.mood ===
+                    mood
+                );
+
+            }
+        );
+
+
+    saveData();
+
+}
+
+
+function selectEnergy(
+    energy
+) {
+
+    const journal =
+        getJournal(
+            selectedJournalDate
+        );
+
+
+    journal.energy =
+        energy;
+
+
+    document
+        .querySelectorAll(
+            ".energy-btn"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "selected",
+                    Number(
+                        button.dataset.energy
+                    ) ===
+                    Number(energy)
+                );
+
+            }
+        );
+
+
+    saveData();
+
+}
+
+
+function saveJournal() {
+
+    const journal =
+        getJournal(
+            selectedJournalDate
+        );
+
+
+    journal.notes =
+        document
+            .getElementById(
+                "journalNotes"
+            )
+            .value;
+
+
+    saveData();
+
+
+    showToast(
+        "Journal saved successfully 📝"
+    );
+
+}
+
+
+function clearJournal() {
+
+    const confirmed =
+        confirm(
+            "Clear the journal for this date?"
+        );
+
+
+    if (!confirmed)
+        return;
+
+
+    const key =
+        dateKey(
+            selectedJournalDate
+        );
+
+
+    delete data.journal[key];
+
+
+    saveData();
+
+
+    loadJournalForSelectedDate();
+
+
+    showToast(
+        "Journal cleared."
+    );
+
+}
+
+
+function changeJournalDate(
+    amount
+) {
+
+    selectedJournalDate =
+        new Date(
+            selectedJournalDate
+                .getFullYear(),
+            selectedJournalDate
+                .getMonth(),
+            selectedJournalDate
+                .getDate() +
+                amount
+        );
+
+
+    document.getElementById(
+        "journalDate"
+    ).value =
+        dateKey(
+            selectedJournalDate
+        );
+
+
+    loadJournalForSelectedDate();
+
+}
+
+
+function goToJournalToday() {
+
+    selectedJournalDate =
+        new Date();
+
+
+    document.getElementById(
+        "journalDate"
+    ).value =
+        dateKey(
+            selectedJournalDate
+        );
+
+
+    loadJournalForSelectedDate();
+
+}
+
+
+/* =========================================================
+   ACHIEVEMENTS
+========================================================= */
+
+const ACHIEVEMENTS = [
+
+    {
+        id:
+            "first",
+
+        icon:
+            "🌱",
+
+        title:
+            "First Step",
+
+        description:
+            "Complete your first habit day.",
+
+        requirement:
+            1
+
+    },
+
+    {
+        id:
+            "three",
+
+        icon:
+            "✨",
+
+        title:
+            "3 Day Starter",
+
+        description:
+            "Reach a 3-day streak.",
+
+        requirement:
+            3
+
+    },
+
+    {
+        id:
+            "seven",
+
+        icon:
+            "🔥",
+
+        title:
+            "One Week",
+
+        description:
+            "Reach a 7-day streak.",
+
+        requirement:
+            7
+
+    },
+
+    {
+        id:
+            "fourteen",
+
+        icon:
+            "⚡",
+
+        title:
+            "Two Weeks",
+
+        description:
+            "Reach a 14-day streak.",
+
+        requirement:
+            14
+
+    },
+
+    {
+        id:
+            "thirty",
+
+        icon:
+            "🏆",
+
+        title:
+            "30 Day Champion",
+
+        description:
+            "Reach a 30-day streak.",
+
+        requirement:
+            30
+
+    },
+
+    {
+        id:
+            "fifty",
+
+        icon:
+            "👑",
+
+        title:
+            "50 Day Master",
+
+        description:
+            "Reach a 50-day streak.",
+
+        requirement:
+            50
+
+    },
+
+    {
+        id:
+            "hundred",
+
+        icon:
+            "💎",
+
+        title:
+            "100 Day Legend",
+
+        description:
+            "Reach a 100-day streak.",
+
+        requirement:
+            100
+
+    }
+
+];
+
+
+function getBestOverallStreak() {
+
+    let best = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            best =
+                Math.max(
+                    best,
+                    getLongestStreak(
+                        task
+                    )
+                );
+
+        }
+    );
+
+
+    return best;
+
+}
+
+
+function getTotalCompleted() {
+
+    let total = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            if (
+                task.completions
+            ) {
+
+                total +=
+                    Object.keys(
+                        task.completions
+                    )
+                    .filter(
+                        key =>
+                            task.completions[key]
+                    )
+                    .length;
+
+            }
+
+        }
+    );
+
+
+    return total;
+
+}
+
+
+function renderAchievements() {
+
+    const container =
+        document.getElementById(
+            "achievementsContainer"
+        );
+
+
+    if (!container)
+        return;
+
+
+    const best =
+        getBestOverallStreak();
+
+
+    const total =
+        getTotalCompleted();
+
+
+    let unlockedCount = 0;
+
+
+    container.innerHTML =
+        ACHIEVEMENTS
+            .map(
+                achievement => {
+
+                    const unlocked =
+                        achievement.id ===
+                        "first"
+
+                            ? total >= 1
+
+                            : best >=
+                              achievement.requirement;
+
+
+                    if (
+                        unlocked
+                    ) {
+
+                        unlockedCount++;
+
+                    }
+
+
+                    return `
+
+                        <div
+                            class="
+                                achievement-card
+                                ${
+                                    unlocked
+                                        ? "unlocked"
+                                        : "locked"
+                                }
+                            "
+                        >
+
+                            <div class="achievement-icon">
+
+                                ${
+                                    unlocked
+                                        ? achievement.icon
+                                        : "🔒"
+                                }
+
+                            </div>
+
+
+                            <strong>
+
+                                ${achievement.title}
+
+                            </strong>
+
+
+                            <small>
+
+                                ${achievement.description}
+
+                            </small>
+
+
+                            <div
+                                class="achievement-status"
+                            >
+
+                                ${
+                                    unlocked
+                                        ? "✓ Unlocked"
+                                        : "Locked"
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    document.getElementById(
+        "achievementCount"
+    ).textContent =
+        `${unlockedCount}/${ACHIEVEMENTS.length}`;
+
+}
+
+
+/* =========================================================
+   GOALS
+========================================================= */
+
+function ensureGoal(
+    task
+) {
+
+    if (!task.goal) {
+
+        task.goal = {
+
+            target:
+                30,
+
+            type:
+                "days"
+
+        };
+
+    }
+
+
+    if (
+        !task.goal.target ||
+        task.goal.target < 1
+    ) {
+
+        task.goal.target =
+            30;
+
+    }
+
+}
+
+
+function getYearTaskCompleted(
+    task,
+    year
+) {
+
+    if (
+        !task.completions
+    ) {
+
+        return 0;
+
+    }
+
+
+    let count = 0;
+
+
+    Object.keys(
+        task.completions
+    )
+    .forEach(
+        key => {
+
+            if (
+                key.startsWith(
+                    `${year}-`
+                ) &&
+                task.completions[key]
+            ) {
+
+                count++;
+
+            }
+
+        }
+    );
+
+
+    return count;
+
+}
+
+
+function saveGoal(
+    taskId
+) {
+
+    const task =
+        data.tasks.find(
+            item =>
+                item.id ===
+                taskId
+        );
+
+
+    if (!task)
+        return;
+
+
+    ensureGoal(task);
+
+
+    const input =
+        document.getElementById(
+            `goal-${taskId}`
+        );
+
+
+    const value =
+        Number(
+            input.value
+        );
+
+
+    if (
+        !value ||
+        value < 1
+    ) {
+
+        showToast(
+            "Enter a valid goal."
+        );
+
+        return;
+
+    }
+
+
+    task.goal.target =
+        value;
+
+
+    saveData();
+
+
+    renderGoals();
+
+
+    showToast(
+        "Goal updated 🎯"
+    );
+
+}
+
+
+function renderGoals() {
+
+    const container =
+        document.getElementById(
+            "goalsContainer"
+        );
+
+
+    if (!container)
+        return;
+
+
+    if (
+        data.tasks.length === 0
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty-state">
+
+                🎯 Add a habit to create
+                a goal.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    data.tasks.forEach(
+        task =>
+            ensureGoal(task)
+    );
+
+
+    container.innerHTML =
+        data.tasks
+            .map(
+                task => {
+
+                    const completed =
+                        getYearTaskCompleted(
+                            task,
+                            statisticsYear
+                        );
+
+
+                    const target =
+                        task.goal.target;
+
+
+                    const percent =
+                        Math.min(
+                            100,
+                            Math.round(
+                                (
+                                    completed /
+                                    target
+                                ) * 100
+                            )
+                        );
+
+
+                    return `
+
+                        <div class="goal-card">
+
+
+                            <div class="goal-header">
+
+                                <div class="goal-icon">
+
+                                    ${task.icon}
+
+                                </div>
+
+
+                                <strong>
+
+                                    ${escapeHTML(
+                                        task.name
+                                    )}
+
+                                </strong>
+
+                            </div>
+
+
+                            <div class="goal-input-row">
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    id="goal-${task.id}"
+                                    value="${target}"
+                                >
+
+
+                                <button
+                                    class="goal-save-btn"
+                                    onclick="
+                                        saveGoal(
+                                            '${task.id}'
+                                        )
+                                    "
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+
+                            <div class="goal-progress">
+
+                                <div
+                                    class="goal-progress-fill"
+                                    style="
+                                        width:
+                                        ${percent}%;
+                                    "
+                                ></div>
+
+                            </div>
+
+
+                            <div class="goal-info">
+
+                                <span>
+
+                                    ${completed}
+                                    /
+                                    ${target}
+                                    days
+
+                                </span>
+
+
+                                <span>
+
+                                    ${percent}%
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   YEAR STATISTICS
+========================================================= */
+
+function initializeYearSelector() {
+
+    const selector =
+        document.getElementById(
+            "yearSelector"
+        );
+
+
+    if (!selector)
+        return;
+
+
+    const currentYear =
+        new Date().getFullYear();
+
+
+    selector.innerHTML =
+        "";
+
+
+    for (
+        let year =
+            currentYear - 3;
+
+        year <=
+            currentYear + 2;
+
+        year++
+    ) {
+
+        selector.innerHTML += `
+
+            <option
+                value="${year}"
+                ${
+                    year ===
+                    statisticsYear
+                        ? "selected"
+                        : ""
+                }
+            >
+                ${year}
+            </option>
+
+        `;
+
+    }
+
+}
+
+
+function changeStatisticsYear() {
+
+    statisticsYear =
+        Number(
+            document
+                .getElementById(
+                    "yearSelector"
+                )
+                .value
+        );
+
+
+    renderYearStatistics();
+
+    renderGoals();
+
+}
+
+
+function getYearStats(
+    year
+) {
+
+    let completed = 0;
+
+    let eligible = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            for (
+                let month = 0;
+                month < 12;
+                month++
+            ) {
+
+                const total =
+                    daysInMonth(
+                        year,
+                        month
+                    );
+
+
+                for (
+                    let day = 1;
+                    day <= total;
+                    day++
+                ) {
+
+                    const date =
+                        new Date(
+                            year,
+                            month,
+                            day
+                        );
+
+
+                    if (
+                        !isFutureDate(
+                            date
+                        )
+                    ) {
+
+                        eligible++;
+
+
+                        if (
+                            task.completions &&
+                            task.completions[
+                                dateKey(date)
+                            ]
+                        ) {
+
+                            completed++;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+    let best = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            best =
+                Math.max(
+                    best,
+                    getYearLongestStreak(
+                        task,
+                        year
+                    )
+                );
+
+        }
+    );
+
+
+    return {
+
+        completed:
+            completed,
+
+        eligible:
+            eligible,
+
+        rate:
+            eligible
+                ? Math.round(
+                    (
+                        completed /
+                        eligible
+                    ) * 100
+                )
+                : 0,
+
+        best:
+            best
+
+    };
+
+}
+
+
+function renderYearStatistics() {
+
+    const stats =
+        getYearStats(
+            statisticsYear
+        );
+
+
+    document.getElementById(
+        "yearCompleted"
+    ).textContent =
+        stats.completed;
+
+
+    document.getElementById(
+        "yearEligible"
+    ).textContent =
+        stats.eligible;
+
+
+    document.getElementById(
+        "yearRate"
+    ).textContent =
+        `${stats.rate}%`;
+
+
+    document.getElementById(
+        "yearBestStreak"
+    ).textContent =
+        `${stats.best} days`;
+
+
+    document.getElementById(
+        "yearProgressText"
+    ).textContent =
+        `${stats.rate}%`;
+
+
+    document.getElementById(
+        "yearProgressBar"
+    ).style.width =
+        `${stats.rate}%`;
+
+
+    renderYearMonths();
+
+}
+
+
+function renderYearMonths() {
+
+    const container =
+        document.getElementById(
+            "yearMonths"
+        );
+
+
+    if (!container)
+        return;
+
+
+    const names = [
+
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+
+    ];
+
+
+    container.innerHTML =
+        names
+            .map(
+                (
+                    name,
+                    month
+                ) => {
+
+                    let completed = 0;
+
+                    let eligible = 0;
+
+
+                    data.tasks.forEach(
+                        task => {
+
+                            const total =
+                                daysInMonth(
+                                    statisticsYear,
+                                    month
+                                );
+
+
+                            for (
+                                let day = 1;
+                                day <= total;
+                                day++
+                            ) {
+
+                                const date =
+                                    new Date(
+                                        statisticsYear,
+                                        month,
+                                        day
+                                    );
+
+
+                                if (
+                                    !isFutureDate(
+                                        date
+                                    )
+                                ) {
+
+                                    eligible++;
+
+
+                                    if (
+                                        task.completions &&
+                                        task.completions[
+                                            dateKey(date)
+                                        ]
+                                    ) {
+
+                                        completed++;
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    );
+
+
+                    const rate =
+                        eligible
+                            ? Math.round(
+                                (
+                                    completed /
+                                    eligible
+                                ) * 100
+                            )
+                            : 0;
+
+
+                    return `
+
+                        <div
+                            class="year-month-card"
+                        >
+
+                            <strong>
+                                ${name}
+                            </strong>
+
+
+                            <div
+                                class="year-month-rate"
+                            >
+                                ${rate}%
+                            </div>
+
+
+                            <small>
+
+                                ${completed}
+                                /
+                                ${eligible}
+                                completed
+
+                            </small>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderTodayDashboard() {
+
+    const today =
+        new Date();
+
+
+    let completed = 0;
+
+    let eligible = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            if (
+                !isFutureDate(
+                    today
+                )
+            ) {
+
+                eligible++;
+
+
+                if (
+                    task.completions &&
+                    task.completions[
+                        dateKey(today)
+                    ]
+                ) {
+
+                    completed++;
+
+                }
+
+            }
+
+        }
+    );
+
+
+    const percent =
+        eligible
+            ? Math.round(
+                (
+                    completed /
+                    eligible
+                ) * 100
+            )
+            : 0;
+
+
+    document.getElementById(
+        "dashboardTodayText"
+    ).textContent =
+        `${completed} / ${eligible}`;
+
+
+    document.getElementById(
+        "dashboardTodayBar"
+    ).style.width =
+        `${percent}%`;
+
+
+    document.getElementById(
+        "dashboardTodayPercent"
+    ).textContent =
+        `${percent}%`;
+
+}
+
+
+function renderDashboardSummary() {
+
+    const year =
+        selectedDate.getFullYear();
+
+
+    const month =
+        selectedDate.getMonth();
+
+
+    const start =
+        new Date(
+            year,
+            month,
+            1
+        );
+
+
+    const end =
+        new Date(
+            year,
+            month,
+            daysInMonth(
+                year,
+                month
+            )
+        );
+
+
+    const stats =
+        getOverallRangeStats(
+            start,
+            end
+        );
+
+
+    let active = 0;
+
+    let best = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            const current =
+                getCurrentStreak(
+                    task
+                );
+
+
+            const longest =
+                getLongestStreak(
+                    task
+                );
+
+
+            if (
+                current > 0
+            ) {
+
+                active++;
+
+            }
+
+
+            best =
+                Math.max(
+                    best,
+                    longest
+                );
+
+        }
+    );
+
+
+    document.getElementById(
+        "dashboardActiveStreaks"
+    ).textContent =
+        active;
+
+
+    document.getElementById(
+        "dashboardMonthCompletions"
+    ).textContent =
+        stats.completed;
+
+
+    document.getElementById(
+        "dashboardBestStreak"
+    ).textContent =
+        `${best} days`;
+
+}
+
+
+function getWeekStart(
+    date
+) {
+
+    const d =
+        new Date(date);
+
+
+    d.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    d.setDate(
+        d.getDate() -
+        d.getDay()
+    );
+
+
+    return d;
+
+}
+
+
+function renderWeeklyDashboard() {
+
+    const container =
+        document.getElementById(
+            "weeklyChart"
+        );
+
+
+    const start =
+        getWeekStart(
+            new Date()
+        );
+
+
+    let html = "";
+
+
+    for (
+        let i = 0;
+        i < 7;
+        i++
+    ) {
+
+        const date =
+            new Date(start);
+
+
+        date.setDate(
+            start.getDate() +
+            i
+        );
+
+
+        let completed = 0;
+
+        let eligible = 0;
+
+
+        data.tasks.forEach(
+            task => {
+
+                if (
+                    !isFutureDate(
+                        date
+                    )
+                ) {
+
+                    eligible++;
+
+
+                    if (
+                        task.completions &&
+                        task.completions[
+                            dateKey(date)
+                        ]
+                    ) {
+
+                        completed++;
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        const percent =
+            eligible
+                ? Math.round(
+                    (
+                        completed /
+                        eligible
+                    ) * 100
+                )
+                : 0;
+
+
+        const dayName =
+            date.toLocaleDateString(
+                "en-US",
+                {
+                    weekday:
+                        "short"
+                }
+            );
+
+
+        html += `
+
+            <div class="week-day">
+
+                <div class="week-value">
+                    ${percent}%
+                </div>
+
+
+                <div class="week-bar-container">
+
+                    <div
+                        class="week-bar"
+                        style="
+                            height:
+                            ${percent}%;
+                        "
+                    ></div>
+
+                </div>
+
+
+                <div class="week-day-label">
+                    ${dayName}
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    container.innerHTML =
+        html;
+
+}
+
+
+function renderMonthlyDashboard() {
+
+    const year =
+        selectedDate.getFullYear();
+
+
+    const month =
+        selectedDate.getMonth();
+
+
+    const stats =
+        getOverallRangeStats(
+
+            new Date(
+                year,
+                month,
+                1
+            ),
+
+            new Date(
+                year,
+                month,
+                daysInMonth(
+                    year,
+                    month
+                )
+            )
+
+        );
+
+
+    document.getElementById(
+        "monthlyPerformanceText"
+    ).textContent =
+        `${stats.rate}%`;
+
+
+    document.getElementById(
+        "monthlyProgressBar"
+    ).style.width =
+        `${stats.rate}%`;
+
+
+    document.getElementById(
+        "monthlyCompletedDays"
+    ).textContent =
+        stats.completed;
+
+
+    document.getElementById(
+        "monthlyEligibleDays"
+    ).textContent =
+        stats.eligible;
+
+}
+
+
+function renderHabitInsights() {
+
+    if (
+        data.tasks.length === 0
+    ) {
+
+        document.getElementById(
+            "strongestHabit"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "strongestHabitRate"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "attentionHabit"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "attentionHabitRate"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "longestCurrentHabit"
+        ).textContent =
+            "—";
+
+
+        document.getElementById(
+            "longestCurrentDays"
+        ).textContent =
+            "0 days";
+
+
+        return;
+
+    }
+
+
+    const stats =
+        data.tasks.map(
+            task => {
+
+                const monthly =
+                    getMonthlyCompletion(
+                        task
+                    );
+
+
+                return {
+
+                    task:
+                        task,
+
+                    rate:
+                        monthly.rate,
+
+                    current:
+                        getCurrentStreak(
+                            task
+                        )
+
+                };
+
+            }
+        );
+
+
+    const strongest =
+        [...stats]
+            .sort(
+                (a,b) =>
+                    b.rate -
+                    a.rate
+            )[0];
+
+
+    const attention =
+        [...stats]
+            .sort(
+                (a,b) =>
+                    a.rate -
+                    b.rate
+            )[0];
+
+
+    const longest =
+        [...stats]
+            .sort(
+                (a,b) =>
+                    b.current -
+                    a.current
+            )[0];
+
+
+    document.getElementById(
+        "strongestHabit"
+    ).textContent =
+        strongest.task.name;
+
+
+    document.getElementById(
+        "strongestHabitRate"
+    ).textContent =
+        `${strongest.rate}% completion`;
+
+
+    document.getElementById(
+        "attentionHabit"
+    ).textContent =
+        attention.task.name;
+
+
+    document.getElementById(
+        "attentionHabitRate"
+    ).textContent =
+        `${attention.rate}% completion`;
+
+
+    document.getElementById(
+        "longestCurrentHabit"
+    ).textContent =
+        longest.task.name;
+
+
+    document.getElementById(
+        "longestCurrentDays"
+    ).textContent =
+        `${longest.current} day${
+            longest.current === 1
+                ? ""
+                : "s"
+        }`;
 
 }
 
@@ -742,41 +3742,51 @@ function isGold(streak) {
    TASK CARD
 ========================================================= */
 
-function createTaskCard(task) {
+function createTaskCard(
+    task
+) {
 
-    const currentStreak =
-        getCurrentStreak(task);
+    ensureReminder(task);
 
-    const longestStreak =
-        getLongestStreak(task);
-
-    const monthCompleted =
-        getMonthCompleted(task);
-
-    const monthBest =
-        getMonthBestStreak(task);
+    ensureGoal(task);
 
 
-    const totalDays =
-        daysInMonth(
-            selectedDate.getFullYear(),
-            selectedDate.getMonth()
+    const current =
+        getCurrentStreak(
+            task
         );
 
 
-    const percentage =
-        Math.round(
-            (
-                monthCompleted /
-                totalDays
-            ) * 100
+    const longest =
+        getLongestStreak(
+            task
         );
 
 
-    const targetText =
-        task.target
-            ? `Target: ${task.target}${task.unit ? " " + task.unit : ""}`
-            : "Daily task";
+    const monthly =
+        getMonthlyCompletion(
+            task
+        );
+
+
+    const monthlyBest =
+        getMonthlyBestStreak(
+            task
+        );
+
+
+    const percent =
+        longest > 0
+            ? Math.min(
+                100,
+                Math.round(
+                    (
+                        current /
+                        longest
+                    ) * 100
+                )
+            )
+            : 0;
 
 
     return `
@@ -784,18 +3794,13 @@ function createTaskCard(task) {
         <article class="task-card">
 
 
-            <!-- TASK HEADER -->
+            <div class="task-header">
 
-            <div class="task-top">
 
                 <div class="task-info">
 
                     <div class="task-icon">
-
-                        ${escapeHTML(
-                            task.icon
-                        )}
-
+                        ${task.icon}
                     </div>
 
 
@@ -812,8 +3817,10 @@ function createTaskCard(task) {
 
                         <div class="task-target">
 
+                            Target:
+                            ${task.target}
                             ${escapeHTML(
-                                targetText
+                                task.unit
                             )}
 
                         </div>
@@ -823,12 +3830,16 @@ function createTaskCard(task) {
                 </div>
 
 
+
                 <div class="task-menu">
 
+
                     <button
-                        class="menu-btn"
+                        class="menu-button"
                         onclick="
-                            toggleMenu('${task.id}')
+                            toggleMenu(
+                                '${task.id}'
+                            )
                         "
                     >
                         ⋮
@@ -836,13 +3847,16 @@ function createTaskCard(task) {
 
 
                     <div
-                        class="menu"
                         id="menu-${task.id}"
+                        class="menu-dropdown"
                     >
+
 
                         <button
                             onclick="
-                                deleteThisMonth('${task.id}')
+                                deleteThisMonth(
+                                    '${task.id}'
+                                )
                             "
                         >
                             🗑 Delete This Month
@@ -850,13 +3864,16 @@ function createTaskCard(task) {
 
 
                         <button
-                            class="danger"
+                            class="delete"
                             onclick="
-                                deleteTask('${task.id}')
+                                deleteTask(
+                                    '${task.id}'
+                                )
                             "
                         >
-                            ❌ Delete Task
+                            ❌ Delete Habit
                         </button>
+
 
                     </div>
 
@@ -865,88 +3882,190 @@ function createTaskCard(task) {
             </div>
 
 
-            <!-- CALENDAR -->
+
+            <!-- REMINDER -->
+
+            <div class="reminder-box">
+
+
+                <div class="reminder-left">
+
+                    <span class="reminder-bell">
+                        🔔
+                    </span>
+
+
+                    <div>
+
+                        <strong>
+                            Reminder
+                        </strong>
+
+
+                        <small>
+
+                            ${
+                                task.reminder.enabled
+                                    ? `Every day at
+                                       ${formatReminderTime(
+                                           task.reminder.time
+                                       )}`
+                                    : "Reminder disabled"
+                            }
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="reminder-controls">
+
+
+                    <label class="switch">
+
+                        <input
+                            type="checkbox"
+
+                            ${
+                                task.reminder.enabled
+                                    ? "checked"
+                                    : ""
+                            }
+
+                            onchange="
+                                toggleReminder(
+                                    '${task.id}',
+                                    this.checked
+                                )
+                            "
+                        >
+
+                        <span class="slider"></span>
+
+                    </label>
+
+
+                    <input
+                        type="time"
+                        class="reminder-time"
+                        value="${task.reminder.time}"
+                        onchange="
+                            updateReminderTime(
+                                '${task.id}',
+                                this.value
+                            )
+                        "
+                    >
+
+                </div>
+
+            </div>
+
+
 
             ${createCalendar(task)}
+
 
 
             <!-- STATS -->
 
             <div class="task-stats">
 
+
                 <div class="stat">
 
-                    <div class="stat-label">
-                        Month
-                    </div>
+                    <span>
+                        This Month
+                    </span>
 
-                    <div class="stat-value">
-                        ${monthCompleted}
-                    </div>
+                    <strong>
+                        ${monthly.completed}
+                    </strong>
 
                 </div>
 
 
                 <div class="stat">
 
-                    <div class="stat-label">
-                        Best
-                    </div>
+                    <span>
+                        Month Best
+                    </span>
 
-                    <div class="stat-value">
-                        ${monthBest}
-                    </div>
+                    <strong>
+                        ${monthlyBest}
+                    </strong>
 
                 </div>
 
 
                 <div class="stat">
 
-                    <div class="stat-label">
-                        Longest
-                    </div>
+                    <span>
+                        All Time
+                    </span>
 
-                    <div class="stat-value">
-                        ${longestStreak}
-                    </div>
+                    <strong>
+                        ${longest}
+                    </strong>
 
                 </div>
+
 
             </div>
 
 
+
             <!-- STREAK -->
 
-            <div class="streak-area">
+            <div class="streak-section">
 
-                <div
-                    class="
-                        streak
-                        ${
-                            isGold(currentStreak)
-                                ? "gold"
-                                : ""
-                        }
-                    "
-                >
 
-                    ${streakText(
-                        currentStreak
+                <div class="streak-row">
+
+
+                    <div class="streak-current">
+
+                        🔥 ${current}
+                        day${current === 1 ? "" : "s"}
+
+                    </div>
+
+
+                    <div class="streak-best">
+
+                        Best:
+                        ${longest}
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="streak-label">
+
+                    ${getStreakLabel(
+                        current
                     )}
 
                 </div>
 
 
-                <div class="progress">
+                <div class="streak-progress">
 
                     <div
-                        class="progress-bar"
+                        class="streak-progress-fill"
                         style="
-                            width:${percentage}%
+                            width:
+                            ${percent}%;
                         "
                     ></div>
 
                 </div>
+
 
             </div>
 
@@ -959,108 +4078,7 @@ function createTaskCard(task) {
 
 
 /* =========================================================
-   RENDER
-========================================================= */
-
-function render() {
-
-    renderMonthTitle();
-
-    renderSummary();
-
-    renderTasks();
-
-}
-
-
-function renderMonthTitle() {
-
-    const title =
-        selectedDate.toLocaleDateString(
-            "en-US",
-            {
-                month: "long",
-                year: "numeric"
-            }
-        );
-
-
-    document
-        .getElementById("monthTitle")
-        .textContent = title;
-
-}
-
-
-/* =========================================================
-   SUMMARY
-========================================================= */
-
-function renderSummary() {
-
-    let completedToday = 0;
-
-    let monthCompletions = 0;
-
-    let activeStreaks = 0;
-
-
-    data.tasks.forEach(task => {
-
-        if (
-            task.records[
-                todayKey()
-            ]
-        ) {
-
-            completedToday++;
-
-        }
-
-
-        monthCompletions +=
-            getMonthCompleted(task);
-
-
-        if (
-            getCurrentStreak(task) > 0
-        ) {
-
-            activeStreaks++;
-
-        }
-
-    });
-
-
-    document
-        .getElementById("totalTasks")
-        .textContent =
-            data.tasks.length;
-
-
-    document
-        .getElementById("completedToday")
-        .textContent =
-            completedToday;
-
-
-    document
-        .getElementById("monthCompletions")
-        .textContent =
-            monthCompletions;
-
-
-    document
-        .getElementById("activeStreaks")
-        .textContent =
-            activeStreaks;
-
-}
-
-
-/* =========================================================
-   TASKS
+   TASK RENDER
 ========================================================= */
 
 function renderTasks() {
@@ -1071,6 +4089,23 @@ function renderTasks() {
         );
 
 
+    data.tasks.forEach(
+        task => {
+
+            ensureReminder(task);
+
+            ensureGoal(task);
+
+            if (!task.completions) {
+
+                task.completions = {};
+
+            }
+
+        }
+    );
+
+
     if (
         data.tasks.length === 0
     ) {
@@ -1079,28 +4114,20 @@ function renderTasks() {
 
             <div class="empty-state">
 
-                <div style="font-size:40px;">
-                    📅
+                <div class="empty-state-icon">
+                    🌱
                 </div>
 
-                <br>
 
-                <h2>
-                    No tasks yet
-                </h2>
+                <h3>
+                    No habits yet
+                </h3>
+
 
                 <p>
-                    Create your first habit calendar.
+                    Add your first habit and
+                    start building your streak.
                 </p>
-
-                <br>
-
-                <button
-                    class="btn add-btn"
-                    onclick="openAddModal()"
-                >
-                    + Create First Task
-                </button>
 
             </div>
 
@@ -1111,20 +4138,100 @@ function renderTasks() {
     }
 
 
-    container.innerHTML = `
+    container.innerHTML =
+        data.tasks
+            .map(
+                task =>
+                    createTaskCard(
+                        task
+                    )
+            )
+            .join("");
 
-        <div class="tasks-grid">
+}
 
-            ${data.tasks
-                .map(
-                    task =>
-                        createTaskCard(task)
-                )
-                .join("")}
 
-        </div>
+/* =========================================================
+   SUMMARY
+========================================================= */
 
-    `;
+function renderSummary() {
+
+    const today =
+        new Date();
+
+
+    const key =
+        dateKey(today);
+
+
+    let completed = 0;
+
+    let best = 0;
+
+
+    data.tasks.forEach(
+        task => {
+
+            if (
+                task.completions &&
+                task.completions[key]
+            ) {
+
+                completed++;
+
+            }
+
+
+            best =
+                Math.max(
+                    best,
+                    getLongestStreak(
+                        task
+                    )
+                );
+
+        }
+    );
+
+
+    const total =
+        data.tasks.length;
+
+
+    const percent =
+        total
+            ? Math.round(
+                (
+                    completed /
+                    total
+                ) * 100
+            )
+            : 0;
+
+
+    document.getElementById(
+        "todayCompletion"
+    ).textContent =
+        `${percent}%`;
+
+
+    document.getElementById(
+        "completedToday"
+    ).textContent =
+        completed;
+
+
+    document.getElementById(
+        "totalTasks"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "overallBest"
+    ).textContent =
+        `${best} days`;
 
 }
 
@@ -1133,27 +4240,39 @@ function renderTasks() {
    MENU
 ========================================================= */
 
-function toggleMenu(id) {
+function toggleMenu(
+    taskId
+) {
 
     const menu =
         document.getElementById(
-            `menu-${id}`
+            `menu-${taskId}`
         );
 
 
+    if (!menu)
+        return;
+
+
     document
-        .querySelectorAll(".menu")
-        .forEach(item => {
+        .querySelectorAll(
+            ".menu-dropdown"
+        )
+        .forEach(
+            item => {
 
-            if (item !== menu) {
+                if (
+                    item !== menu
+                ) {
 
-                item.classList.remove(
-                    "show"
-                );
+                    item.classList.remove(
+                        "show"
+                    );
+
+                }
 
             }
-
-        });
+        );
 
 
     menu.classList.toggle(
@@ -1165,7 +4284,7 @@ function toggleMenu(id) {
 
 document.addEventListener(
     "click",
-    function(event) {
+    event => {
 
         if (
             !event.target.closest(
@@ -1174,14 +4293,15 @@ document.addEventListener(
         ) {
 
             document
-                .querySelectorAll(".menu")
-                .forEach(menu => {
-
-                    menu.classList.remove(
-                        "show"
-                    );
-
-                });
+                .querySelectorAll(
+                    ".menu-dropdown"
+                )
+                .forEach(
+                    menu =>
+                        menu.classList.remove(
+                            "show"
+                        )
+                );
 
         }
 
@@ -1193,62 +4313,74 @@ document.addEventListener(
    DELETE MONTH
 ========================================================= */
 
-function deleteThisMonth(taskId) {
+function deleteThisMonth(
+    taskId
+) {
 
     const task =
         data.tasks.find(
-            t => t.id === taskId
+            item =>
+                item.id ===
+                taskId
         );
 
 
-    if (!task) return;
+    if (!task)
+        return;
 
 
-    const monthName =
-        selectedDate.toLocaleDateString(
-            "en-US",
-            {
-                month: "long",
-                year: "numeric"
-            }
-        );
-
-
-    const confirmed =
-        confirm(
-            `Delete all ${monthName} records for "${task.name}"?\n\nPrevious months will stay safe.`
-        );
-
-
-    if (!confirmed) return;
-
-
-    const prefix =
+    const month =
         monthKey(
             selectedDate
         );
 
 
-    Object.keys(task.records)
-        .forEach(key => {
+    const confirmed =
+        confirm(
+            `Delete all records for ${month}? Previous months will remain safe.`
+        );
 
-            if (
-                key.startsWith(prefix)
-            ) {
 
-                delete task.records[key];
+    if (!confirmed)
+        return;
+
+
+    if (
+        task.completions
+    ) {
+
+        Object.keys(
+            task.completions
+        )
+        .forEach(
+            key => {
+
+                if (
+                    key.startsWith(
+                        month
+                    )
+                ) {
+
+                    delete task.completions[
+                        key
+                    ];
+
+                }
 
             }
+        );
 
-        });
+    }
 
 
     saveData();
 
+
     render();
 
+
     showToast(
-        `${monthName} records deleted.`
+        "This month's records deleted."
     );
 
 }
@@ -1258,39 +4390,48 @@ function deleteThisMonth(taskId) {
    DELETE TASK
 ========================================================= */
 
-function deleteTask(taskId) {
+function deleteTask(
+    taskId
+) {
 
     const task =
         data.tasks.find(
-            t => t.id === taskId
+            item =>
+                item.id ===
+                taskId
         );
 
 
-    if (!task) return;
+    if (!task)
+        return;
 
 
     const confirmed =
         confirm(
-            `Delete "${task.name}" completely?\n\nAll history will be permanently removed.`
+            `Delete "${task.name}" and all its history?`
         );
 
 
-    if (!confirmed) return;
+    if (!confirmed)
+        return;
 
 
     data.tasks =
         data.tasks.filter(
-            task =>
-                task.id !== taskId
+            item =>
+                item.id !==
+                taskId
         );
 
 
     saveData();
 
+
     render();
 
+
     showToast(
-        "Task deleted."
+        "Habit deleted."
     );
 
 }
@@ -1300,14 +4441,14 @@ function deleteTask(taskId) {
    EXCEL EXPORT
 ========================================================= */
 
-function exportExcel() {
+function exportToExcel() {
 
     if (
         data.tasks.length === 0
     ) {
 
         showToast(
-            "Create a task first."
+            "Add at least one habit first."
         );
 
         return;
@@ -1315,114 +4456,266 @@ function exportExcel() {
     }
 
 
-    const summaryRows = [];
+    if (
+        typeof XLSX ===
+        "undefined"
+    ) {
 
-    const detailRows = [];
+        showToast(
+            "Excel library is not loaded. Check your internet connection."
+        );
 
+        return;
 
-    data.tasks.forEach(task => {
-
-        summaryRows.push({
-
-            Task: task.name,
-
-            Icon: task.icon,
-
-            Target:
-                task.target ?? "",
-
-            Unit:
-                task.unit || "",
-
-            "Current Streak":
-                getCurrentStreak(task),
-
-            "Longest Streak":
-                getLongestStreak(task),
-
-            "Selected Month":
-                getMonthCompleted(task),
-
-            "Month Best":
-                getMonthBestStreak(task),
-
-            Created:
-                task.createdAt
-
-        });
+    }
 
 
-        Object.keys(
-            task.records
-        )
-        .sort()
-        .forEach(date => {
+    const rows = [];
 
-            detailRows.push({
 
-                Task:
-                    task.name,
+    data.tasks.forEach(
+        task => {
 
-                Date:
-                    date,
+            Object.keys(
+                task.completions ||
+                {}
+            )
+            .forEach(
+                date => {
 
-                Status:
-                    task.records[date]
-                        ? "Completed"
-                        : "Not Completed",
+                    rows.push({
 
-                Target:
-                    task.target ?? "",
+                        Date:
+                            date,
 
-                Unit:
-                    task.unit || ""
+                        Habit:
+                            task.name,
 
-            });
+                        Icon:
+                            task.icon,
 
-        });
+                        Target:
+                            task.target,
 
-    });
+                        Unit:
+                            task.unit,
+
+                        Completed:
+                            task.completions[
+                                date
+                            ]
+                                ? "Yes"
+                                : "No",
+
+                        CurrentStreak:
+                            getCurrentStreak(
+                                task
+                            ),
+
+                        LongestStreak:
+                            getLongestStreak(
+                                task
+                            ),
+
+                        ReminderEnabled:
+                            task.reminder &&
+                            task.reminder.enabled
+                                ? "Yes"
+                                : "No",
+
+                        ReminderTime:
+                            task.reminder &&
+                            task.reminder.time
+                                ? task.reminder.time
+                                : "",
+
+                        Goal:
+                            task.goal
+                                ? task.goal.target
+                                : ""
+
+                    });
+
+                }
+            );
+
+        }
+    );
 
 
     const workbook =
         XLSX.utils.book_new();
 
 
-    const summarySheet =
+    const historySheet =
         XLSX.utils.json_to_sheet(
-            summaryRows
-        );
-
-
-    const detailSheet =
-        XLSX.utils.json_to_sheet(
-            detailRows
+            rows
         );
 
 
     XLSX.utils.book_append_sheet(
         workbook,
-        summarySheet,
-        "Summary"
+        historySheet,
+        "Habit History"
     );
 
 
-    XLSX.utils.book_append_sheet(
-        workbook,
-        detailSheet,
-        "Daily Records"
+    /* JOURNAL */
+
+    const journalRows = [];
+
+
+    Object.keys(
+        data.journal ||
+        {}
+    )
+    .forEach(
+        date => {
+
+            const journal =
+                data.journal[date];
+
+
+            journalRows.push({
+
+                Date:
+                    date,
+
+                Mood:
+                    journal.mood ||
+                    "",
+
+                Energy:
+                    journal.energy ||
+                    "",
+
+                Notes:
+                    journal.notes ||
+                    ""
+
+            });
+
+        }
     );
+
+
+    if (
+        journalRows.length > 0
+    ) {
+
+        const journalSheet =
+            XLSX.utils.json_to_sheet(
+                journalRows
+            );
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            journalSheet,
+            "Journal"
+        );
+
+    }
+
+
+    /* GOALS */
+
+    const goalRows =
+        data.tasks.map(
+            task => {
+
+                ensureGoal(task);
+
+
+                return {
+
+                    Habit:
+                        task.name,
+
+                    Year:
+                        statisticsYear,
+
+                    Goal:
+                        task.goal.target,
+
+                    Completed:
+                        getYearTaskCompleted(
+                            task,
+                            statisticsYear
+                        )
+
+                };
+
+            }
+        );
+
+
+    if (
+        goalRows.length > 0
+    ) {
+
+        const goalSheet =
+            XLSX.utils.json_to_sheet(
+                goalRows
+            );
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            goalSheet,
+            "Goals"
+        );
+
+    }
 
 
     XLSX.writeFile(
         workbook,
-        `Habit_Tracker_${todayKey()}.xlsx`
+        "My_Habit_Tracker.xlsx"
     );
 
 
     showToast(
-        "Excel exported successfully."
+        "Excel exported successfully 📊"
     );
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(
+    value
+) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
@@ -1431,15 +4724,18 @@ function exportExcel() {
    TOAST
 ========================================================= */
 
-let toastTimer;
-
-
-function showToast(message) {
+function showToast(
+    message
+) {
 
     const toast =
         document.getElementById(
             "toast"
         );
+
+
+    if (!toast)
+        return;
 
 
     toast.textContent =
@@ -1472,69 +4768,16 @@ function showToast(message) {
 
 
 /* =========================================================
-   ESCAPE HTML
+   MODAL EVENTS
 ========================================================= */
-
-function escapeHTML(value) {
-
-    return String(value)
-
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
-}
-
-
-/* =========================================================
-   MODAL
-========================================================= */
-
-document
-    .getElementById("addModal")
-    .addEventListener(
-        "click",
-        function(event) {
-
-            if (
-                event.target === this
-            ) {
-
-                closeAddModal();
-
-            }
-
-        }
-    );
-
 
 document.addEventListener(
     "keydown",
-    function(event) {
+    event => {
 
         if (
-            event.key === "Escape"
+            event.key ===
+            "Escape"
         ) {
 
             closeAddModal();
@@ -1545,8 +4788,273 @@ document.addEventListener(
 );
 
 
+document
+    .getElementById(
+        "addModal"
+    )
+    .addEventListener(
+        "click",
+        function(event) {
+
+            if (
+                event.target ===
+                this
+            ) {
+
+                closeAddModal();
+
+            }
+
+        }
+    );
+
+
 /* =========================================================
-   START
+   PWA INSTALL SUPPORT
 ========================================================= */
 
+let deferredInstallPrompt =
+    null;
+
+
+window.addEventListener(
+    "beforeinstallprompt",
+    event => {
+
+        event.preventDefault();
+
+
+        deferredInstallPrompt =
+            event;
+
+
+        const button =
+            document.getElementById(
+                "installAppButton"
+            );
+
+
+        if (button) {
+
+            button.style.display =
+                "inline-flex";
+
+        }
+
+    }
+);
+
+
+async function installApp() {
+
+    if (
+        !deferredInstallPrompt
+    ) {
+
+        showToast(
+            "App installation is not available yet."
+        );
+
+        return;
+
+    }
+
+
+    deferredInstallPrompt.prompt();
+
+
+    const result =
+        await deferredInstallPrompt.userChoice;
+
+
+    if (
+        result.outcome ===
+        "accepted"
+    ) {
+
+        showToast(
+            "My Habit Tracker installed 📱"
+        );
+
+    }
+    else {
+
+        showToast(
+            "Installation cancelled."
+        );
+
+    }
+
+
+    deferredInstallPrompt =
+        null;
+
+
+    const button =
+        document.getElementById(
+            "installAppButton"
+        );
+
+
+    if (button) {
+
+        button.style.display =
+            "none";
+
+    }
+
+}
+
+
+window.addEventListener(
+    "appinstalled",
+    () => {
+
+        deferredInstallPrompt =
+            null;
+
+
+        const button =
+            document.getElementById(
+                "installAppButton"
+            );
+
+
+        if (button) {
+
+            button.style.display =
+                "none";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   OPTIONAL SERVICE WORKER
+========================================================= */
+
+function registerServiceWorker() {
+
+    if (
+        !("serviceWorker" in navigator)
+    )
+        return;
+
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register(
+                    "./service-worker.js"
+                )
+                .then(
+                    registration => {
+
+                        console.log(
+                            "Service Worker registered:",
+                            registration.scope
+                        );
+
+                    }
+                )
+                .catch(
+                    error => {
+
+                        /*
+                         Service worker is optional.
+                         The website continues working
+                         normally if the file does not exist.
+                        */
+
+                        console.log(
+                            "PWA service worker not available:",
+                            error.message
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   MAIN RENDER
+========================================================= */
+
+function render() {
+
+    renderMonthTitle();
+
+    renderSummary();
+
+    renderTodayDashboard();
+
+    renderDashboardSummary();
+
+    renderWeeklyDashboard();
+
+    renderMonthlyDashboard();
+
+    renderHabitInsights();
+
+    renderTodayReminders();
+
+    renderAchievements();
+
+    renderYearStatistics();
+
+    renderGoals();
+
+    renderTasks();
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+data.tasks.forEach(
+    task => {
+
+        if (!task.completions) {
+
+            task.completions = {};
+
+        }
+
+
+        ensureReminder(task);
+
+        ensureGoal(task);
+
+    }
+);
+
+
+ensureJournal();
+
+
+saveData();
+
+
+initializeYearSelector();
+
+
+initializeJournal();
+
+
 render();
+
+
+checkReminders();
+
+
+registerServiceWorker();

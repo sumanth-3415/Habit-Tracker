@@ -1,38 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#2563eb"
+    >
 
     <title>My Habit Tracker</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-    <!-- Excel Export -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <!-- Excel Export Library -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"
+    ></script>
+
 </head>
+
 
 <body>
 
-<header class="header">
 
-    <div class="header-left">
-        <div class="logo">✓</div>
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header class="top-header">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            ✓
+        </div>
 
         <div>
-            <h1>My Habit Tracker</h1>
-            <p>Build consistency. Track your progress.</p>
+
+            <h1>
+                My Habit Tracker
+            </h1>
+
+            <p>
+                Build better habits, one day at a time.
+            </p>
+
         </div>
+
     </div>
 
-    <div class="header-buttons">
 
-        <button class="btn excel-btn" onclick="exportExcel()">
-            📥 Excel
+    <div class="header-actions">
+
+        <button
+            id="installAppButton"
+            class="btn install-btn"
+            onclick="installApp()"
+            style="display:none;"
+        >
+            📱 Install App
         </button>
 
-        <button class="btn add-btn" onclick="openAddModal()">
-            + Add Task
+
+        <button
+            class="btn excel-btn"
+            onclick="exportToExcel()"
+        >
+            📊 Excel
+        </button>
+
+
+        <button
+            class="btn add-btn"
+            onclick="openAddModal()"
+        >
+            + Add Habit
         </button>
 
     </div>
@@ -40,91 +92,977 @@
 </header>
 
 
-<main class="container">
 
-    <!-- MONTH NAVIGATION -->
+<main class="main-container">
 
-    <div class="month-bar">
 
-        <button class="month-arrow" onclick="changeMonth(-1)">
+<!-- =====================================================
+     MONTH NAVIGATION
+===================================================== -->
+
+<section class="month-bar">
+
+    <button
+        class="month-arrow"
+        onclick="changeMonth(-1)"
+    >
+        ‹
+    </button>
+
+
+    <div
+        id="monthTitle"
+        class="month-title"
+    >
+        October 2026
+    </div>
+
+
+    <button
+        class="month-arrow"
+        onclick="changeMonth(1)"
+    >
+        ›
+    </button>
+
+</section>
+
+
+
+<!-- =====================================================
+     REMINDERS
+===================================================== -->
+
+<section class="reminders-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                🔔 Today's Reminders
+            </h2>
+
+            <p>
+                Your scheduled habit reminders for today
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn reminder-permission-btn"
+            onclick="requestNotificationPermission()"
+        >
+            🔔 Enable Notifications
+        </button>
+
+    </div>
+
+
+    <div
+        id="todayReminders"
+        class="today-reminders"
+    ></div>
+
+</section>
+
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section class="dashboard-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                📊 Dashboard
+            </h2>
+
+            <p>
+                Your overall habit performance
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+
+        <!-- TODAY -->
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-card-icon">
+                📅
+            </div>
+
+            <div class="dashboard-card-content">
+
+                <span>
+                    Today's Progress
+                </span>
+
+                <strong id="dashboardTodayText">
+                    0 / 0
+                </strong>
+
+                <div class="dashboard-progress">
+
+                    <div
+                        id="dashboardTodayBar"
+                        class="dashboard-progress-fill"
+                    ></div>
+
+                </div>
+
+                <small id="dashboardTodayPercent">
+                    0%
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIVE STREAKS -->
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-card-icon">
+                🔥
+            </div>
+
+            <div class="dashboard-card-content">
+
+                <span>
+                    Active Streaks
+                </span>
+
+                <strong id="dashboardActiveStreaks">
+                    0
+                </strong>
+
+                <small>
+                    Habits currently on streak
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- MONTH COMPLETIONS -->
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-card-icon">
+                ✅
+            </div>
+
+            <div class="dashboard-card-content">
+
+                <span>
+                    Month Completions
+                </span>
+
+                <strong id="dashboardMonthCompletions">
+                    0
+                </strong>
+
+                <small>
+                    Completed habit days
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- BEST STREAK -->
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-card-icon">
+                🏆
+            </div>
+
+            <div class="dashboard-card-content">
+
+                <span>
+                    Best Streak
+                </span>
+
+                <strong id="dashboardBestStreak">
+                    0 days
+                </strong>
+
+                <small>
+                    Across all habits
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- WEEKLY PERFORMANCE -->
+
+    <div class="dashboard-panel">
+
+        <div class="panel-heading">
+
+            <h3>
+                📈 Weekly Performance
+            </h3>
+
+        </div>
+
+
+        <div
+            id="weeklyChart"
+            class="weekly-chart"
+        ></div>
+
+    </div>
+
+
+
+    <!-- MONTHLY PERFORMANCE -->
+
+    <div class="dashboard-panel">
+
+        <div class="panel-heading">
+
+            <h3>
+                📅 Monthly Performance
+            </h3>
+
+        </div>
+
+
+        <div class="monthly-performance">
+
+            <div class="monthly-performance-header">
+
+                <strong id="monthlyPerformanceText">
+                    0%
+                </strong>
+
+                <span>
+                    Monthly completion
+                </span>
+
+            </div>
+
+
+            <div class="monthly-progress">
+
+                <div
+                    id="monthlyProgressBar"
+                    class="monthly-progress-fill"
+                ></div>
+
+            </div>
+
+
+            <div class="monthly-performance-stats">
+
+                <span>
+                    Completed:
+                    <strong id="monthlyCompletedDays">
+                        0
+                    </strong>
+                </span>
+
+
+                <span>
+                    Eligible:
+                    <strong id="monthlyEligibleDays">
+                        0
+                    </strong>
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- HABIT INSIGHTS -->
+
+    <div class="dashboard-panel">
+
+        <div class="panel-heading">
+
+            <h3>
+                💡 Habit Insights
+            </h3>
+
+        </div>
+
+
+        <div class="insights-grid">
+
+
+            <div class="insight-card">
+
+                <span>
+                    💪 Strongest Habit
+                </span>
+
+                <strong id="strongestHabit">
+                    —
+                </strong>
+
+                <small id="strongestHabitRate">
+                    —
+                </small>
+
+            </div>
+
+
+            <div class="insight-card">
+
+                <span>
+                    ⚠️ Needs Attention
+                </span>
+
+                <strong id="attentionHabit">
+                    —
+                </strong>
+
+                <small id="attentionHabitRate">
+                    —
+                </small>
+
+            </div>
+
+
+            <div class="insight-card">
+
+                <span>
+                    🔥 Longest Current Streak
+                </span>
+
+                <strong id="longestCurrentHabit">
+                    —
+                </strong>
+
+                <small id="longestCurrentDays">
+                    0 days
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     DAILY JOURNAL
+===================================================== -->
+
+<section class="journal-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                📝 Daily Journal
+            </h2>
+
+            <p>
+                Record how your day went
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="journal-date-row">
+
+        <button
+            class="date-nav-btn"
+            onclick="changeJournalDate(-1)"
+        >
             ‹
         </button>
 
-        <div>
-            <h2 id="monthTitle"></h2>
-            <button class="today-btn" onclick="goToday()">
-                Today
-            </button>
-        </div>
 
-        <button class="month-arrow" onclick="changeMonth(1)">
+        <input
+            type="date"
+            id="journalDate"
+            onchange="loadJournalForSelectedDate()"
+        >
+
+
+        <button
+            class="date-nav-btn"
+            onclick="changeJournalDate(1)"
+        >
             ›
+        </button>
+
+
+        <button
+            class="btn today-btn"
+            onclick="goToJournalToday()"
+        >
+            Today
         </button>
 
     </div>
 
 
-    <!-- SUMMARY -->
 
-    <div class="summary">
+    <div class="journal-grid">
 
-        <div class="summary-card">
-            <span>Total Tasks</span>
-            <strong id="totalTasks">0</strong>
+
+        <!-- MOOD -->
+
+        <div class="journal-card">
+
+            <h3>
+                😊 Mood
+            </h3>
+
+
+            <div class="mood-options">
+
+
+                <button
+                    class="mood-btn"
+                    data-mood="Amazing"
+                    onclick="selectMood('Amazing')"
+                >
+                    🤩
+                    <span>
+                        Amazing
+                    </span>
+                </button>
+
+
+                <button
+                    class="mood-btn"
+                    data-mood="Happy"
+                    onclick="selectMood('Happy')"
+                >
+                    😊
+                    <span>
+                        Happy
+                    </span>
+                </button>
+
+
+                <button
+                    class="mood-btn"
+                    data-mood="Okay"
+                    onclick="selectMood('Okay')"
+                >
+                    😐
+                    <span>
+                        Okay
+                    </span>
+                </button>
+
+
+                <button
+                    class="mood-btn"
+                    data-mood="Sad"
+                    onclick="selectMood('Sad')"
+                >
+                    😔
+                    <span>
+                        Sad
+                    </span>
+                </button>
+
+
+                <button
+                    class="mood-btn"
+                    data-mood="Bad"
+                    onclick="selectMood('Bad')"
+                >
+                    😞
+                    <span>
+                        Bad
+                    </span>
+                </button>
+
+            </div>
+
         </div>
 
-        <div class="summary-card">
-            <span>Completed Today</span>
-            <strong id="completedToday">0</strong>
-        </div>
 
-        <div class="summary-card">
-            <span>Month Completions</span>
-            <strong id="monthCompletions">0</strong>
-        </div>
 
-        <div class="summary-card">
-            <span>Active Streaks</span>
-            <strong id="activeStreaks">0</strong>
+        <!-- ENERGY -->
+
+        <div class="journal-card">
+
+            <h3>
+                ⚡ Energy Level
+            </h3>
+
+
+            <div class="energy-options">
+
+
+                <button
+                    class="energy-btn"
+                    data-energy="1"
+                    onclick="selectEnergy(1)"
+                >
+                    1
+                </button>
+
+
+                <button
+                    class="energy-btn"
+                    data-energy="2"
+                    onclick="selectEnergy(2)"
+                >
+                    2
+                </button>
+
+
+                <button
+                    class="energy-btn"
+                    data-energy="3"
+                    onclick="selectEnergy(3)"
+                >
+                    3
+                </button>
+
+
+                <button
+                    class="energy-btn"
+                    data-energy="4"
+                    onclick="selectEnergy(4)"
+                >
+                    4
+                </button>
+
+
+                <button
+                    class="energy-btn"
+                    data-energy="5"
+                    onclick="selectEnergy(5)"
+                >
+                    5
+                </button>
+
+            </div>
+
+
+            <div class="energy-labels">
+
+                <span>
+                    Low
+                </span>
+
+                <span>
+                    High
+                </span>
+
+            </div>
+
         </div>
 
     </div>
 
 
-    <!-- TASK CALENDARS -->
 
-    <section id="tasksContainer"></section>
+    <!-- NOTES -->
+
+    <div class="journal-card journal-notes-card">
+
+        <h3>
+            📔 What happened today?
+        </h3>
+
+
+        <textarea
+            id="journalNotes"
+            placeholder="Write about your day, achievements, problems, ideas or anything you want to remember..."
+        ></textarea>
+
+
+        <div class="journal-actions">
+
+            <button
+                class="btn add-btn"
+                onclick="saveJournal()"
+            >
+                💾 Save Journal
+            </button>
+
+
+            <button
+                class="btn cancel-btn"
+                onclick="clearJournal()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     ACHIEVEMENTS
+===================================================== -->
+
+<section class="achievements-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                🏆 Achievements
+            </h2>
+
+            <p>
+                Milestones you have unlocked
+            </p>
+
+        </div>
+
+
+        <div
+            class="achievement-count"
+            id="achievementCount"
+        >
+            0/7
+        </div>
+
+    </div>
+
+
+    <div
+        id="achievementsContainer"
+        class="achievements-grid"
+    ></div>
+
+</section>
+
+
+
+<!-- =====================================================
+     YEARLY STATISTICS
+===================================================== -->
+
+<section class="year-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                📊 Yearly Statistics
+            </h2>
+
+            <p>
+                Your complete yearly progress
+            </p>
+
+        </div>
+
+
+        <select
+            id="yearSelector"
+            onchange="changeStatisticsYear()"
+            class="year-selector"
+        ></select>
+
+    </div>
+
+
+
+    <div class="year-stat-grid">
+
+
+        <div class="year-stat-card">
+
+            <span>
+                Completed Days
+            </span>
+
+            <strong id="yearCompleted">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="year-stat-card">
+
+            <span>
+                Eligible Days
+            </span>
+
+            <strong id="yearEligible">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="year-stat-card">
+
+            <span>
+                Completion Rate
+            </span>
+
+            <strong id="yearRate">
+                0%
+            </strong>
+
+        </div>
+
+
+        <div class="year-stat-card">
+
+            <span>
+                Best Streak
+            </span>
+
+            <strong id="yearBestStreak">
+                0 days
+            </strong>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="year-progress-box">
+
+        <div class="year-progress-header">
+
+            <strong>
+                Year Progress
+            </strong>
+
+            <span id="yearProgressText">
+                0%
+            </span>
+
+        </div>
+
+
+        <div class="year-progress">
+
+            <div
+                id="yearProgressBar"
+                class="year-progress-fill"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+
+    <div
+        id="yearMonths"
+        class="year-month-grid"
+    ></div>
+
+</section>
+
+
+
+<!-- =====================================================
+     GOALS
+===================================================== -->
+
+<section class="goals-section">
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                🎯 Habit Goals
+            </h2>
+
+            <p>
+                Set yearly completion goals for each habit
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="goalsContainer"
+        class="goals-grid"
+    ></div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SUMMARY
+===================================================== -->
+
+<section class="summary">
+
+
+    <div class="summary-card">
+
+        <span>
+            Today's Completion
+        </span>
+
+        <strong id="todayCompletion">
+            0%
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Completed Today
+        </span>
+
+        <strong id="completedToday">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Total Habits
+        </span>
+
+        <strong id="totalTasks">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Current Best
+        </span>
+
+        <strong id="overallBest">
+            0 days
+        </strong>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HABITS
+===================================================== -->
+
+<section>
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                My Habits
+            </h2>
+
+            <p>
+                Complete your habits every day
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="tasksContainer"
+        class="tasks-grid"
+    ></div>
+
+</section>
+
 
 </main>
 
 
-<!-- ADD TASK MODAL -->
 
-<div class="modal-overlay" id="addModal">
+<!-- =====================================================
+     ADD HABIT MODAL
+===================================================== -->
+
+<div
+    id="addModal"
+    class="modal-overlay"
+>
 
     <div class="modal">
 
+
         <div class="modal-header">
 
-            <div>
-                <h2>Create Task</h2>
-                <p>Create your own separate calendar.</p>
-            </div>
+            <h2>
+                ➕ Add New Habit
+            </h2>
 
-            <button onclick="closeAddModal()">×</button>
+            <button
+                class="modal-close"
+                onclick="closeAddModal()"
+            >
+                ×
+            </button>
 
         </div>
 
 
         <div class="form-group">
 
-            <label>Task Name</label>
+            <label>
+                Habit Name
+            </label>
 
             <input
                 type="text"
                 id="taskName"
                 placeholder="Example: Reading"
-                maxlength="40"
             >
 
         </div>
@@ -132,16 +1070,18 @@
 
         <div class="form-row">
 
+
             <div class="form-group">
 
-                <label>Icon</label>
+                <label>
+                    Icon
+                </label>
 
                 <input
                     type="text"
                     id="taskIcon"
-                    value="⭐"
+                    value="🎯"
                     maxlength="4"
-                    class="icon-input"
                 >
 
             </div>
@@ -149,13 +1089,30 @@
 
             <div class="form-group">
 
-                <label>Target</label>
+                <label>
+                    Target
+                </label>
 
                 <input
                     type="number"
                     id="taskTarget"
-                    placeholder="2"
-                    min="0"
+                    value="1"
+                    min="1"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Unit
+                </label>
+
+                <input
+                    type="text"
+                    id="taskUnit"
+                    value="time"
                 >
 
             </div>
@@ -163,20 +1120,7 @@
         </div>
 
 
-        <div class="form-group">
-
-            <label>Unit</label>
-
-            <input
-                type="text"
-                id="taskUnit"
-                placeholder="Liters, Pages, Minutes..."
-            >
-
-        </div>
-
-
-        <div class="modal-buttons">
+        <div class="modal-actions">
 
             <button
                 class="btn cancel-btn"
@@ -185,11 +1129,12 @@
                 Cancel
             </button>
 
+
             <button
                 class="btn add-btn"
-                onclick="createTask()"
+                onclick="addTask()"
             >
-                Create Task
+                Add Habit
             </button>
 
         </div>
@@ -199,9 +1144,16 @@
 </div>
 
 
-<!-- TOAST -->
 
-<div id="toast" class="toast"></div>
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
 
 
 <script src="script.js"></script>
