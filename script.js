@@ -3023,15 +3023,18 @@ function getYearStats(
 
 function renderYearStatistics() {
 
+    const element =
+        document.getElementById("yearCompleted");
+
+    if (!element)
+        return;
+
     const stats =
         getYearStats(
             statisticsYear
         );
 
-
-    document.getElementById(
-        "yearCompleted"
-    ).textContent =
+    element.textContent =
         stats.completed;
 
 
@@ -3852,6 +3855,17 @@ function createTaskCard(
                         id="menu-${task.id}"
                         class="menu-dropdown"
                     >
+
+
+                        <button
+                            onclick="
+                                openEditModal(
+                                    '${task.id}'
+                                )
+                            "
+                        >
+                            ✏️ Edit Habit
+                        </button>
 
 
                         <button
@@ -4783,6 +4797,8 @@ document.addEventListener(
         ) {
 
             closeAddModal();
+            closeEditModal();
+            closeBackupModal();
             closeSidebar();
 
         }
@@ -4791,25 +4807,26 @@ document.addEventListener(
 );
 
 
-document
-    .getElementById(
-        "addModal"
-    )
-    .addEventListener(
-        "click",
-        function(event) {
+const addModalEl = document.getElementById("addModal");
+if (addModalEl) {
+    addModalEl.addEventListener("click", function(event) {
+        if (event.target === this) closeAddModal();
+    });
+}
 
-            if (
-                event.target ===
-                this
-            ) {
+const editModalEl = document.getElementById("editModal");
+if (editModalEl) {
+    editModalEl.addEventListener("click", function(event) {
+        if (event.target === this) closeEditModal();
+    });
+}
 
-                closeAddModal();
-
-            }
-
-        }
-    );
+const backupModalEl = document.getElementById("backupModal");
+if (backupModalEl) {
+    backupModalEl.addEventListener("click", function(event) {
+        if (event.target === this) closeBackupModal();
+    });
+}
 
 
 /* =========================================================
@@ -5048,7 +5065,6 @@ function getAvailableYears() {
     const currentYear = new Date().getFullYear();
     yearsSet.add(currentYear);
     yearsSet.add(selectedDate.getFullYear());
-    yearsSet.add(currentYear - 1);
 
     if (data && data.tasks) {
         data.tasks.forEach(task => {
@@ -5227,8 +5243,6 @@ function render() {
 
     renderAchievements();
 
-    renderYearStatistics();
-
     renderGoals();
 
     renderTasks();
@@ -5262,12 +5276,7 @@ data.tasks.forEach(
 
 ensureJournal();
 
-
 saveData();
-
-
-initializeYearSelector();
-
 
 initializeJournal();
 
