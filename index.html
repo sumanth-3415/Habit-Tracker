@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Habit Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="header-left">
+        <div class="logo">✓</div>
+
+        <div>
+            <h1>My Habit Tracker</h1>
+            <p>Build consistency. Track your progress.</p>
+        </div>
+    </div>
+
+    <div class="header-buttons">
+
+        <button class="btn excel-btn" onclick="exportExcel()">
+            📥 Excel
+        </button>
+
+        <button class="btn add-btn" onclick="openAddModal()">
+            + Add Task
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <!-- MONTH NAVIGATION -->
+
+    <div class="month-bar">
+
+        <button class="month-arrow" onclick="changeMonth(-1)">
+            ‹
+        </button>
+
+        <div>
+            <h2 id="monthTitle"></h2>
+            <button class="today-btn" onclick="goToday()">
+                Today
+            </button>
+        </div>
+
+        <button class="month-arrow" onclick="changeMonth(1)">
+            ›
+        </button>
+
+    </div>
+
+
+    <!-- SUMMARY -->
+
+    <div class="summary">
+
+        <div class="summary-card">
+            <span>Total Tasks</span>
+            <strong id="totalTasks">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Completed Today</span>
+            <strong id="completedToday">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Month Completions</span>
+            <strong id="monthCompletions">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Active Streaks</span>
+            <strong id="activeStreaks">0</strong>
+        </div>
+
+    </div>
+
+
+    <!-- TASK CALENDARS -->
+
+    <section id="tasksContainer"></section>
+
+</main>
+
+
+<!-- ADD TASK MODAL -->
+
+<div class="modal-overlay" id="addModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+                <h2>Create Task</h2>
+                <p>Create your own separate calendar.</p>
+            </div>
+
+            <button onclick="closeAddModal()">×</button>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Task Name</label>
+
+            <input
+                type="text"
+                id="taskName"
+                placeholder="Example: Reading"
+                maxlength="40"
+            >
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>Icon</label>
+
+                <input
+                    type="text"
+                    id="taskIcon"
+                    value="⭐"
+                    maxlength="4"
+                    class="icon-input"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Target</label>
+
+                <input
+                    type="number"
+                    id="taskTarget"
+                    placeholder="2"
+                    min="0"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Unit</label>
+
+            <input
+                type="text"
+                id="taskUnit"
+                placeholder="Liters, Pages, Minutes..."
+            >
+
+        </div>
+
+
+        <div class="modal-buttons">
+
+            <button
+                class="btn cancel-btn"
+                onclick="closeAddModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                class="btn add-btn"
+                onclick="createTask()"
+            >
+                Create Task
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div id="toast" class="toast"></div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
