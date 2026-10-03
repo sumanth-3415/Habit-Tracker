@@ -153,24 +153,6 @@
         </button>
 
         <button
-            id="themeToggleBtn"
-            class="btn theme-btn"
-            onclick="toggleTheme()"
-            title="Toggle Dark / Light Mode"
-        >
-            🌙 Dark
-        </button>
-
-        <button
-            id="backupBtn"
-            class="btn backup-btn"
-            onclick="openBackupModal()"
-            title="Data Backup & Restore"
-        >
-            💾 Backup
-        </button>
-
-        <button
             id="installAppButton"
             class="btn install-btn"
             onclick="installApp()"
@@ -178,6 +160,15 @@
         >
             📱 Install App
         </button>
+
+
+        <button
+            class="btn excel-btn"
+            onclick="exportToExcel()"
+        >
+            📊 Excel
+        </button>
+
 
         <button
             class="btn add-btn"
@@ -191,128 +182,44 @@
 </header>
 
 
-<!-- =====================================================
-     APP NAVIGATION TABS
-===================================================== -->
-
-<nav class="app-tabs" aria-label="Main Navigation">
-
-    <button
-        class="tab-btn active"
-        data-tab="habits"
-        onclick="switchTab('habits')"
-    >
-        📋 Habits &amp; Calendars
-    </button>
-
-    <button
-        class="tab-btn"
-        data-tab="dashboard"
-        onclick="switchTab('dashboard')"
-    >
-        📊 Dashboard &amp; Insights
-    </button>
-
-    <button
-        class="tab-btn"
-        data-tab="journal"
-        onclick="switchTab('journal')"
-    >
-        📝 Daily Journal
-    </button>
-
-    <button
-        class="tab-btn"
-        data-tab="goals"
-        onclick="switchTab('goals')"
-    >
-        🎯 Goals &amp; Badges
-    </button>
-
-</nav>
-
 
 <main class="main-container">
 
 
 <!-- =====================================================
-     TAB 1: HABITS & CALENDARS
+     MONTH NAVIGATION
 ===================================================== -->
 
-<div id="tab-habits" class="tab-pane active">
+<section class="month-bar">
 
-    <!-- MONTH NAVIGATION -->
-    <section class="month-bar">
-
-        <button
-            class="month-arrow"
-            onclick="changeMonth(-1)"
-            title="Previous Month"
-        >
-            ‹
-        </button>
+    <button
+        class="month-arrow"
+        onclick="changeMonth(-1)"
+        title="Previous Month"
+    >
+        ‹
+    </button>
 
 
-        <button
-            id="monthTitle"
-            class="month-title month-title-clickable"
-            onclick="toggleSidebar()"
-            title="Click to browse all Years and Months"
-        >
-            October 2026
-        </button>
+    <button
+        id="monthTitle"
+        class="month-title month-title-clickable"
+        onclick="toggleSidebar()"
+        title="Click to browse all Years and Months"
+    >
+        October 2026
+    </button>
 
 
-        <button
-            class="month-arrow"
-            onclick="changeMonth(1)"
-            title="Next Month"
-        >
-            ›
-        </button>
+    <button
+        class="month-arrow"
+        onclick="changeMonth(1)"
+        title="Next Month"
+    >
+        ›
+    </button>
 
-    </section>
-
-
-    <!-- TODAY QUICK CHECK-IN -->
-    <div id="todayChecklistContainer"></div>
-
-
-    <!-- HABITS LIST -->
-    <section class="habits-section">
-
-        <div class="section-title">
-
-            <div>
-
-                <h2>
-                    My Habits
-                </h2>
-
-                <p>
-                    Complete your habits every day
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="tasksContainer"
-            class="tasks-grid"
-        ></div>
-
-    </section>
-
-</div>
-
-
-<!-- =====================================================
-     TAB 2: DASHBOARD & INSIGHTS
-===================================================== -->
-
-<div id="tab-dashboard" class="tab-pane">
+</section>
 
 
 
@@ -659,14 +566,11 @@
 
 </section>
 
-</div>
 
 
 <!-- =====================================================
-     TAB 3: DAILY JOURNAL
+     DAILY JOURNAL
 ===================================================== -->
-
-<div id="tab-journal" class="tab-pane">
 
 <section class="journal-section">
 
@@ -918,14 +822,11 @@
 
 </section>
 
-</div>
 
 
 <!-- =====================================================
-     TAB 4: GOALS & ACHIEVEMENTS
+     ACHIEVEMENTS
 ===================================================== -->
-
-<div id="tab-goals" class="tab-pane">
 
 <section class="achievements-section">
 
@@ -993,7 +894,99 @@
 
 </section>
 
-</div>
+
+
+<!-- =====================================================
+     SUMMARY
+===================================================== -->
+
+<section class="summary">
+
+
+    <div class="summary-card">
+
+        <span>
+            Today's Completion
+        </span>
+
+        <strong id="todayCompletion">
+            0%
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Completed Today
+        </span>
+
+        <strong id="completedToday">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Total Habits
+        </span>
+
+        <strong id="totalTasks">
+            0
+        </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <span>
+            Current Best
+        </span>
+
+        <strong id="overallBest">
+            0 days
+        </strong>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HABITS
+===================================================== -->
+
+<section>
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                My Habits
+            </h2>
+
+            <p>
+                Complete your habits every day
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="tasksContainer"
+        class="tasks-grid"
+    ></div>
+
+</section>
 
 
 </main>
@@ -1110,240 +1103,6 @@
                 onclick="addTask()"
             >
                 Add Habit
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     EDIT HABIT MODAL
-===================================================== -->
-
-<div
-    id="editModal"
-    class="modal-overlay"
->
-
-    <div class="modal">
-
-        <div class="modal-header">
-
-            <h2>
-                ✏️ Edit Habit
-            </h2>
-
-            <button
-                class="modal-close"
-                onclick="closeEditModal()"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                Habit Name
-            </label>
-
-            <input
-                type="text"
-                id="editTaskName"
-                placeholder="Example: Reading"
-            >
-
-        </div>
-
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label>
-                    Icon
-                </label>
-
-                <input
-                    type="text"
-                    id="editTaskIcon"
-                    value="🎯"
-                    maxlength="4"
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>
-                    Target
-                </label>
-
-                <input
-                    type="number"
-                    id="editTaskTarget"
-                    value="1"
-                    min="1"
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>
-                    Unit
-                </label>
-
-                <input
-                    type="text"
-                    id="editTaskUnit"
-                    value="time"
-                >
-
-            </div>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="btn cancel-btn"
-                onclick="closeEditModal()"
-            >
-                Cancel
-            </button>
-
-            <button
-                class="btn add-btn"
-                onclick="saveEditedHabit()"
-            >
-                Save Changes
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     DATA BACKUP & RESTORE MODAL
-===================================================== -->
-
-<div
-    id="backupModal"
-    class="modal-overlay"
->
-
-    <div class="modal backup-modal">
-
-        <div class="modal-header">
-
-            <div>
-                <h2>
-                    💾 Data Backup &amp; Restore
-                </h2>
-                <p>
-                    Download or restore your habits safely
-                </p>
-            </div>
-
-            <button
-                class="modal-close"
-                onclick="closeBackupModal()"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="backup-options">
-
-            <div class="backup-card">
-
-                <div class="backup-icon">📥</div>
-
-                <div class="backup-info">
-                    <strong>Export JSON Backup</strong>
-                    <p>Downloads a full backup file (.json) to your device. Keep this safe on Google Drive, USB, or email.</p>
-                </div>
-
-                <button
-                    class="btn backup-action-btn"
-                    onclick="exportJSONBackup()"
-                >
-                    Download Backup (.json)
-                </button>
-
-            </div>
-
-
-            <div class="backup-card">
-
-                <div class="backup-icon">📤</div>
-
-                <div class="backup-info">
-                    <strong>Restore from Backup</strong>
-                    <p>Load your saved .json backup file into the app to restore all your habits, streaks, and journal notes.</p>
-                </div>
-
-                <button
-                    class="btn backup-action-btn secondary"
-                    onclick="triggerBackupUpload()"
-                >
-                    Upload &amp; Restore (.json)
-                </button>
-
-            </div>
-
-
-            <div class="backup-card">
-
-                <div class="backup-icon">📊</div>
-
-                <div class="backup-info">
-                    <strong>Export Excel Spreadsheet</strong>
-                    <p>Download your complete work log, streaks, and journal in a multi-sheet Excel file (.xlsx).</p>
-                </div>
-
-                <button
-                    class="btn backup-action-btn excel"
-                    onclick="exportToExcel()"
-                >
-                    Download Excel (.xlsx)
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <input
-            type="file"
-            id="backupFileInput"
-            accept=".json"
-            style="display:none;"
-            onchange="importJSONBackup(event)"
-        >
-
-
-        <div class="modal-actions">
-
-            <button
-                class="btn cancel-btn"
-                onclick="closeBackupModal()"
-            >
-                Close
             </button>
 
         </div>

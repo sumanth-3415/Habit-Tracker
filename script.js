@@ -3859,17 +3859,6 @@ function createTaskCard(
 
                         <button
                             onclick="
-                                openEditModal(
-                                    '${task.id}'
-                                )
-                            "
-                        >
-                            ✏️ Edit Habit
-                        </button>
-
-
-                        <button
-                            onclick="
                                 deleteThisMonth(
                                     '${task.id}'
                                 )
@@ -4797,8 +4786,6 @@ document.addEventListener(
         ) {
 
             closeAddModal();
-            closeEditModal();
-            closeBackupModal();
             closeSidebar();
 
         }
@@ -4807,26 +4794,25 @@ document.addEventListener(
 );
 
 
-const addModalEl = document.getElementById("addModal");
-if (addModalEl) {
-    addModalEl.addEventListener("click", function(event) {
-        if (event.target === this) closeAddModal();
-    });
-}
+document
+    .getElementById(
+        "addModal"
+    )
+    .addEventListener(
+        "click",
+        function(event) {
 
-const editModalEl = document.getElementById("editModal");
-if (editModalEl) {
-    editModalEl.addEventListener("click", function(event) {
-        if (event.target === this) closeEditModal();
-    });
-}
+            if (
+                event.target ===
+                this
+            ) {
 
-const backupModalEl = document.getElementById("backupModal");
-if (backupModalEl) {
-    backupModalEl.addEventListener("click", function(event) {
-        if (event.target === this) closeBackupModal();
-    });
-}
+                closeAddModal();
+
+            }
+
+        }
+    );
 
 
 /* =========================================================
