@@ -7,12 +7,12 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
     <meta
         name="theme-color"
-        content="#2563eb"
+        content="#090d16"
     >
 
     <title>My Habit Tracker</title>
@@ -39,22 +39,23 @@
         }
 
         .logo-fallback {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #2563eb, #22c55e);
-            font-size: 34px;
+            background: linear-gradient(135deg, #10b981, #0284c7);
+            font-size: 30px;
             flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
         }
 
         @media (max-width: 480px) {
             .logo-fallback {
-                width: 52px;
-                height: 52px;
-                border-radius: 15px;
-                font-size: 28px;
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                font-size: 24px;
             }
         }
     </style>
@@ -119,8 +120,8 @@
             src="./logo.png?v=2"
             alt="My Habit Tracker Logo"
             class="app-logo"
-            width="64"
-            height="64"
+            width="56"
+            height="56"
             onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';"
         >
 
@@ -135,7 +136,7 @@
 
         <div class="brand-text">
             <h1>My Habit Tracker</h1>
-            <p>Small habits. Big results.</p>
+            <p>Build momentum. Elevate everyday.</p>
         </div>
 
     </div>
@@ -149,7 +150,24 @@
             onclick="toggleSidebar()"
             title="Open Year & Month Archive"
         >
-            📁 Years &amp; Months
+            📁 Archive
+        </button>
+
+        <button
+            id="themeToggleBtn"
+            class="btn theme-btn"
+            onclick="toggleTheme()"
+            title="Toggle Dark / Light Theme"
+        >
+            🌙 Dark
+        </button>
+
+        <button
+            class="btn backup-btn"
+            onclick="openBackupModal()"
+            title="Backup & Restore Data"
+        >
+            💾 Backup
         </button>
 
         <button
@@ -158,21 +176,21 @@
             onclick="installApp()"
             style="display:none;"
         >
-            📱 Install App
+            📱 Install
         </button>
-
 
         <button
             class="btn excel-btn"
             onclick="exportToExcel()"
+            title="Export habit logs to Excel"
         >
             📊 Excel
         </button>
 
-
         <button
             class="btn add-btn"
             onclick="openAddModal()"
+            title="Add a new habit"
         >
             + Add Habit
         </button>
@@ -182,946 +200,558 @@
 </header>
 
 
+<!-- =====================================================
+     APP NAVIGATION TABS
+===================================================== -->
+
+<nav class="app-tabs">
+    <button class="tab-btn active" data-tab="habits" onclick="switchTab('habits')">
+        <span class="tab-icon">📋</span> Habits &amp; Calendars
+    </button>
+    <button class="tab-btn" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <span class="tab-icon">📊</span> Dashboard &amp; Insights
+    </button>
+    <button class="tab-btn" data-tab="journal" onclick="switchTab('journal')">
+        <span class="tab-icon">📝</span> Daily Journal
+    </button>
+    <button class="tab-btn" data-tab="goals" onclick="switchTab('goals')">
+        <span class="tab-icon">🎯</span> Goals &amp; Badges
+    </button>
+</nav>
+
 
 <main class="main-container">
 
-
-<!-- =====================================================
-     MONTH NAVIGATION
-===================================================== -->
-
-<section class="month-bar">
-
-    <button
-        class="month-arrow"
-        onclick="changeMonth(-1)"
-        title="Previous Month"
-    >
-        ‹
-    </button>
+    <!-- TODAY QUICK CHECK-IN -->
+    <div id="todayChecklistContainer"></div>
 
 
-    <button
-        id="monthTitle"
-        class="month-title month-title-clickable"
-        onclick="toggleSidebar()"
-        title="Click to browse all Years and Months"
-    >
-        October 2026
-    </button>
+    <!-- =====================================================
+         TAB 1: HABITS & CALENDARS
+    ===================================================== -->
+    <div id="tab-habits" class="tab-pane active">
 
+        <!-- MONTH NAVIGATION -->
+        <section class="month-bar">
+            <button
+                class="month-arrow"
+                onclick="changeMonth(-1)"
+                title="Previous Month"
+            >
+                ‹
+            </button>
 
-    <button
-        class="month-arrow"
-        onclick="changeMonth(1)"
-        title="Next Month"
-    >
-        ›
-    </button>
+            <button
+                id="monthTitle"
+                class="month-title month-title-clickable"
+                onclick="toggleSidebar()"
+                title="Click to browse all Years and Months"
+            >
+                October 2026
+            </button>
 
-</section>
+            <button
+                class="month-arrow"
+                onclick="changeMonth(1)"
+                title="Next Month"
+            >
+                ›
+            </button>
+        </section>
 
-
-
-<!-- =====================================================
-     REMINDERS
-===================================================== -->
-
-<section class="reminders-section">
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                🔔 Today's Reminders
-            </h2>
-
-            <p>
-                Your scheduled habit reminders for today
-            </p>
-
-        </div>
-
-
-        <button
-            class="btn reminder-permission-btn"
-            onclick="requestNotificationPermission()"
-        >
-            🔔 Enable Notifications
-        </button>
-
-    </div>
-
-
-    <div
-        id="todayReminders"
-        class="today-reminders"
-    ></div>
-
-</section>
-
-
-
-<!-- =====================================================
-     DASHBOARD
-===================================================== -->
-
-<section class="dashboard-section">
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                📊 Dashboard
-            </h2>
-
-            <p>
-                Your overall habit performance
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div class="dashboard-grid">
-
-
-        <!-- TODAY -->
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-icon">
-                📅
-            </div>
-
-            <div class="dashboard-card-content">
-
-                <span>
-                    Today's Progress
-                </span>
-
-                <strong id="dashboardTodayText">
-                    0 / 0
-                </strong>
-
-                <div class="dashboard-progress">
-
-                    <div
-                        id="dashboardTodayBar"
-                        class="dashboard-progress-fill"
-                    ></div>
-
+        <!-- REMINDERS -->
+        <section class="reminders-section">
+            <div class="section-title">
+                <div>
+                    <h2>🔔 Today's Reminders</h2>
+                    <p>Your scheduled habit reminders for today</p>
                 </div>
 
-                <small id="dashboardTodayPercent">
-                    0%
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <!-- ACTIVE STREAKS -->
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-icon">
-                🔥
-            </div>
-
-            <div class="dashboard-card-content">
-
-                <span>
-                    Active Streaks
-                </span>
-
-                <strong id="dashboardActiveStreaks">
-                    0
-                </strong>
-
-                <small>
-                    Habits currently on streak
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <!-- MONTH COMPLETIONS -->
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-icon">
-                ✅
-            </div>
-
-            <div class="dashboard-card-content">
-
-                <span>
-                    Month Completions
-                </span>
-
-                <strong id="dashboardMonthCompletions">
-                    0
-                </strong>
-
-                <small>
-                    Completed habit days
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <!-- BEST STREAK -->
-
-        <div class="dashboard-card">
-
-            <div class="dashboard-card-icon">
-                🏆
-            </div>
-
-            <div class="dashboard-card-content">
-
-                <span>
-                    Best Streak
-                </span>
-
-                <strong id="dashboardBestStreak">
-                    0 days
-                </strong>
-
-                <small>
-                    Across all habits
-                </small>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- WEEKLY PERFORMANCE -->
-
-    <div class="dashboard-panel">
-
-        <div class="panel-heading">
-
-            <h3>
-                📈 Weekly Performance
-            </h3>
-
-        </div>
-
-
-        <div
-            id="weeklyChart"
-            class="weekly-chart"
-        ></div>
-
-    </div>
-
-
-
-    <!-- MONTHLY PERFORMANCE -->
-
-    <div class="dashboard-panel">
-
-        <div class="panel-heading">
-
-            <h3>
-                📅 Monthly Performance
-            </h3>
-
-        </div>
-
-
-        <div class="monthly-performance">
-
-            <div class="monthly-performance-header">
-
-                <strong id="monthlyPerformanceText">
-                    0%
-                </strong>
-
-                <span>
-                    Monthly completion
-                </span>
-
-            </div>
-
-
-            <div class="monthly-progress">
-
-                <div
-                    id="monthlyProgressBar"
-                    class="monthly-progress-fill"
-                ></div>
-
-            </div>
-
-
-            <div class="monthly-performance-stats">
-
-                <span>
-                    Completed:
-                    <strong id="monthlyCompletedDays">
-                        0
-                    </strong>
-                </span>
-
-
-                <span>
-                    Eligible:
-                    <strong id="monthlyEligibleDays">
-                        0
-                    </strong>
-                </span>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- HABIT INSIGHTS -->
-
-    <div class="dashboard-panel">
-
-        <div class="panel-heading">
-
-            <h3>
-                💡 Habit Insights
-            </h3>
-
-        </div>
-
-
-        <div class="insights-grid">
-
-
-            <div class="insight-card">
-
-                <span>
-                    💪 Strongest Habit
-                </span>
-
-                <strong id="strongestHabit">
-                    —
-                </strong>
-
-                <small id="strongestHabitRate">
-                    —
-                </small>
-
-            </div>
-
-
-            <div class="insight-card">
-
-                <span>
-                    ⚠️ Needs Attention
-                </span>
-
-                <strong id="attentionHabit">
-                    —
-                </strong>
-
-                <small id="attentionHabitRate">
-                    —
-                </small>
-
-            </div>
-
-
-            <div class="insight-card">
-
-                <span>
-                    🔥 Longest Current Streak
-                </span>
-
-                <strong id="longestCurrentHabit">
-                    —
-                </strong>
-
-                <small id="longestCurrentDays">
-                    0 days
-                </small>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- =====================================================
-     DAILY JOURNAL
-===================================================== -->
-
-<section class="journal-section">
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                📝 Daily Journal
-            </h2>
-
-            <p>
-                Record how your day went
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div class="journal-date-row">
-
-        <button
-            class="date-nav-btn"
-            onclick="changeJournalDate(-1)"
-        >
-            ‹
-        </button>
-
-
-        <input
-            type="date"
-            id="journalDate"
-            onchange="loadJournalForSelectedDate()"
-        >
-
-
-        <button
-            class="date-nav-btn"
-            onclick="changeJournalDate(1)"
-        >
-            ›
-        </button>
-
-
-        <button
-            class="btn today-btn"
-            onclick="goToJournalToday()"
-        >
-            Today
-        </button>
-
-    </div>
-
-
-
-    <div class="journal-grid">
-
-
-        <!-- MOOD -->
-
-        <div class="journal-card">
-
-            <h3>
-                😊 Mood
-            </h3>
-
-
-            <div class="mood-options">
-
-
                 <button
-                    class="mood-btn"
-                    data-mood="Amazing"
-                    onclick="selectMood('Amazing')"
+                    class="btn reminder-permission-btn"
+                    onclick="requestNotificationPermission()"
                 >
-                    🤩
-                    <span>
-                        Amazing
-                    </span>
+                    🔔 Enable Reminders
+                </button>
+            </div>
+
+            <div
+                id="todayReminders"
+                class="today-reminders"
+            ></div>
+        </section>
+
+        <!-- SUMMARY -->
+        <section class="summary">
+            <div class="summary-card">
+                <span>Today's Completion</span>
+                <strong id="todayCompletion">0%</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Completed Today</span>
+                <strong id="completedToday">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Total Habits</span>
+                <strong id="totalTasks">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Current Best</span>
+                <strong id="overallBest">0 days</strong>
+            </div>
+        </section>
+
+        <!-- HABITS GRID -->
+        <section>
+            <div class="section-title">
+                <div>
+                    <h2>My Habits</h2>
+                    <p>Complete your habits every day to keep the streak burning</p>
+                </div>
+            </div>
+
+            <div
+                id="tasksContainer"
+                class="tasks-grid"
+            ></div>
+        </section>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 2: DASHBOARD & INSIGHTS
+    ===================================================== -->
+    <div id="tab-dashboard" class="tab-pane">
+
+        <section class="dashboard-section">
+            <div class="section-title">
+                <div>
+                    <h2>📊 Habit Performance Dashboard</h2>
+                    <p>Track your daily execution and consistency metrics</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- TODAY -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">📅</div>
+                    <div class="dashboard-card-content">
+                        <span>Today's Progress</span>
+                        <strong id="dashboardTodayText">0 / 0</strong>
+                        <div class="dashboard-progress">
+                            <div id="dashboardTodayBar" class="dashboard-progress-fill"></div>
+                        </div>
+                        <small id="dashboardTodayPercent">0%</small>
+                    </div>
+                </div>
+
+                <!-- ACTIVE STREAKS -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">🔥</div>
+                    <div class="dashboard-card-content">
+                        <span>Active Streaks</span>
+                        <strong id="dashboardActiveStreaks">0</strong>
+                        <small>Habits currently on streak</small>
+                    </div>
+                </div>
+
+                <!-- MONTH COMPLETIONS -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">✅</div>
+                    <div class="dashboard-card-content">
+                        <span>Month Completions</span>
+                        <strong id="dashboardMonthCompletions">0</strong>
+                        <small>Completed habit days</small>
+                    </div>
+                </div>
+
+                <!-- BEST STREAK -->
+                <div class="dashboard-card">
+                    <div class="dashboard-card-icon">🏆</div>
+                    <div class="dashboard-card-content">
+                        <span>Best Streak</span>
+                        <strong id="dashboardBestStreak">0 days</strong>
+                        <small>Across all habits</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEEKLY PERFORMANCE -->
+            <div class="dashboard-panel">
+                <div class="panel-heading">
+                    <h3>📈 Weekly Performance</h3>
+                </div>
+                <div id="weeklyChart" class="weekly-chart"></div>
+            </div>
+
+            <!-- MONTHLY PERFORMANCE -->
+            <div class="dashboard-panel">
+                <div class="panel-heading">
+                    <h3>📅 Monthly Performance</h3>
+                </div>
+                <div class="monthly-performance-header">
+                    <strong id="monthlyPerformanceText">0%</strong>
+                    <span>Monthly completion</span>
+                </div>
+                <div class="monthly-progress">
+                    <div id="monthlyProgressBar" class="monthly-progress-fill"></div>
+                </div>
+                <div class="monthly-performance-stats">
+                    <span>Completed: <strong id="monthlyCompletedDays">0</strong></span>
+                    <span>Eligible: <strong id="monthlyEligibleDays">0</strong></span>
+                </div>
+            </div>
+
+            <!-- HABIT INSIGHTS -->
+            <div class="dashboard-panel habit-insights">
+                <div class="panel-heading">
+                    <h3>💡 Habit Insights &amp; Analytics</h3>
+                </div>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <span>💪 Strongest Habit</span>
+                        <strong id="strongestHabit">—</strong>
+                        <small id="strongestHabitRate">—</small>
+                    </div>
+
+                    <div class="insight-card">
+                        <span>⚠️ Needs Attention</span>
+                        <strong id="attentionHabit">—</strong>
+                        <small id="attentionHabitRate">—</small>
+                    </div>
+
+                    <div class="insight-card">
+                        <span>🔥 Longest Active Streak</span>
+                        <strong id="longestCurrentHabit">—</strong>
+                        <small id="longestCurrentDays">0 days</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 3: DAILY JOURNAL
+    ===================================================== -->
+    <div id="tab-journal" class="tab-pane">
+
+        <section class="journal-section">
+            <div class="section-title">
+                <div>
+                    <h2>📝 Daily Journal &amp; Reflection</h2>
+                    <p>Record your mindset, energy, and wins for each day</p>
+                </div>
+            </div>
+
+            <div class="journal-date-row">
+                <button
+                    class="date-nav-btn"
+                    onclick="changeJournalDate(-1)"
+                >
+                    ‹
                 </button>
 
+                <input
+                    type="date"
+                    id="journalDate"
+                    onchange="loadJournalForSelectedDate()"
+                >
 
                 <button
-                    class="mood-btn"
-                    data-mood="Happy"
-                    onclick="selectMood('Happy')"
+                    class="date-nav-btn"
+                    onclick="changeJournalDate(1)"
                 >
-                    😊
-                    <span>
-                        Happy
-                    </span>
+                    ›
                 </button>
-
 
                 <button
-                    class="mood-btn"
-                    data-mood="Okay"
-                    onclick="selectMood('Okay')"
+                    class="btn today-btn"
+                    onclick="goToJournalToday()"
                 >
-                    😐
-                    <span>
-                        Okay
-                    </span>
+                    Today
                 </button>
-
-
-                <button
-                    class="mood-btn"
-                    data-mood="Sad"
-                    onclick="selectMood('Sad')"
-                >
-                    😔
-                    <span>
-                        Sad
-                    </span>
-                </button>
-
-
-                <button
-                    class="mood-btn"
-                    data-mood="Bad"
-                    onclick="selectMood('Bad')"
-                >
-                    😞
-                    <span>
-                        Bad
-                    </span>
-                </button>
-
             </div>
 
-        </div>
+            <div class="journal-grid">
+                <!-- MOOD -->
+                <div class="journal-card">
+                    <h3>😊 Mood</h3>
+                    <div class="mood-options">
+                        <button class="mood-btn" data-mood="Amazing" onclick="selectMood('Amazing')">
+                            🤩 <span>Amazing</span>
+                        </button>
+                        <button class="mood-btn" data-mood="Happy" onclick="selectMood('Happy')">
+                            😊 <span>Happy</span>
+                        </button>
+                        <button class="mood-btn" data-mood="Okay" onclick="selectMood('Okay')">
+                            😐 <span>Okay</span>
+                        </button>
+                        <button class="mood-btn" data-mood="Sad" onclick="selectMood('Sad')">
+                            😔 <span>Sad</span>
+                        </button>
+                        <button class="mood-btn" data-mood="Bad" onclick="selectMood('Bad')">
+                            😞 <span>Bad</span>
+                        </button>
+                    </div>
+                </div>
 
-
-
-        <!-- ENERGY -->
-
-        <div class="journal-card">
-
-            <h3>
-                ⚡ Energy Level
-            </h3>
-
-
-            <div class="energy-options">
-
-
-                <button
-                    class="energy-btn"
-                    data-energy="1"
-                    onclick="selectEnergy(1)"
-                >
-                    1
-                </button>
-
-
-                <button
-                    class="energy-btn"
-                    data-energy="2"
-                    onclick="selectEnergy(2)"
-                >
-                    2
-                </button>
-
-
-                <button
-                    class="energy-btn"
-                    data-energy="3"
-                    onclick="selectEnergy(3)"
-                >
-                    3
-                </button>
-
-
-                <button
-                    class="energy-btn"
-                    data-energy="4"
-                    onclick="selectEnergy(4)"
-                >
-                    4
-                </button>
-
-
-                <button
-                    class="energy-btn"
-                    data-energy="5"
-                    onclick="selectEnergy(5)"
-                >
-                    5
-                </button>
-
+                <!-- ENERGY -->
+                <div class="journal-card">
+                    <h3>⚡ Energy Level</h3>
+                    <div class="energy-options">
+                        <button class="energy-btn" data-energy="1" onclick="selectEnergy(1)">1</button>
+                        <button class="energy-btn" data-energy="2" onclick="selectEnergy(2)">2</button>
+                        <button class="energy-btn" data-energy="3" onclick="selectEnergy(3)">3</button>
+                        <button class="energy-btn" data-energy="4" onclick="selectEnergy(4)">4</button>
+                        <button class="energy-btn" data-energy="5" onclick="selectEnergy(5)">5</button>
+                    </div>
+                    <div class="energy-labels">
+                        <span>Low</span>
+                        <span>High</span>
+                    </div>
+                </div>
             </div>
 
+            <!-- NOTES -->
+            <div class="journal-card journal-notes-card">
+                <h3>📔 What happened today?</h3>
+                <textarea
+                    id="journalNotes"
+                    placeholder="Write about your achievements, breakthroughs, mindset, or ideas..."
+                ></textarea>
 
-            <div class="energy-labels">
-
-                <span>
-                    Low
-                </span>
-
-                <span>
-                    High
-                </span>
-
+                <div class="journal-actions">
+                    <button class="btn add-btn" onclick="saveJournal()">
+                        💾 Save Entry
+                    </button>
+                    <button class="btn cancel-btn" onclick="clearJournal()">
+                        Clear
+                    </button>
+                </div>
             </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- NOTES -->
-
-    <div class="journal-card journal-notes-card">
-
-        <h3>
-            📔 What happened today?
-        </h3>
-
-
-        <textarea
-            id="journalNotes"
-            placeholder="Write about your day, achievements, problems, ideas or anything you want to remember..."
-        ></textarea>
-
-
-        <div class="journal-actions">
-
-            <button
-                class="btn add-btn"
-                onclick="saveJournal()"
-            >
-                💾 Save Journal
-            </button>
-
-
-            <button
-                class="btn cancel-btn"
-                onclick="clearJournal()"
-            >
-                Clear
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-
-<!-- =====================================================
-     ACHIEVEMENTS
-===================================================== -->
-
-<section class="achievements-section">
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                🏆 Achievements
-            </h2>
-
-            <p>
-                Milestones you have unlocked
-            </p>
-
-        </div>
-
-
-        <div
-            class="achievement-count"
-            id="achievementCount"
-        >
-            0/7
-        </div>
+        </section>
 
     </div>
 
 
-    <div
-        id="achievementsContainer"
-        class="achievements-grid"
-    ></div>
+    <!-- =====================================================
+         TAB 4: GOALS & BADGES
+    ===================================================== -->
+    <div id="tab-goals" class="tab-pane">
 
-</section>
+        <!-- ACHIEVEMENTS -->
+        <section class="achievements-section">
+            <div class="section-title">
+                <div>
+                    <h2>🏆 Milestone Achievements</h2>
+                    <p>Badges unlocked through discipline and streaks</p>
+                </div>
+                <div class="achievement-count" id="achievementCount">
+                    0/7
+                </div>
+            </div>
+            <div id="achievementsContainer" class="achievements-grid"></div>
+        </section>
 
-
-
-<!-- =====================================================
-     GOALS
-===================================================== -->
-
-<section class="goals-section">
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                🎯 Habit Goals
-            </h2>
-
-            <p>
-                Set yearly completion goals for each habit
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div
-        id="goalsContainer"
-        class="goals-grid"
-    ></div>
-
-</section>
-
-
-
-<!-- =====================================================
-     SUMMARY
-===================================================== -->
-
-<section class="summary">
-
-
-    <div class="summary-card">
-
-        <span>
-            Today's Completion
-        </span>
-
-        <strong id="todayCompletion">
-            0%
-        </strong>
+        <!-- GOALS -->
+        <section class="goals-section">
+            <div class="section-title">
+                <div>
+                    <h2>🎯 Yearly Habit Targets</h2>
+                    <p>Track your annual cumulative completion goals</p>
+                </div>
+            </div>
+            <div id="goalsContainer" class="goals-grid"></div>
+        </section>
 
     </div>
-
-
-    <div class="summary-card">
-
-        <span>
-            Completed Today
-        </span>
-
-        <strong id="completedToday">
-            0
-        </strong>
-
-    </div>
-
-
-    <div class="summary-card">
-
-        <span>
-            Total Habits
-        </span>
-
-        <strong id="totalTasks">
-            0
-        </strong>
-
-    </div>
-
-
-    <div class="summary-card">
-
-        <span>
-            Current Best
-        </span>
-
-        <strong id="overallBest">
-            0 days
-        </strong>
-
-    </div>
-
-</section>
-
-
-
-<!-- =====================================================
-     HABITS
-===================================================== -->
-
-<section>
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                My Habits
-            </h2>
-
-            <p>
-                Complete your habits every day
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div
-        id="tasksContainer"
-        class="tasks-grid"
-    ></div>
-
-</section>
-
 
 </main>
-
 
 
 <!-- =====================================================
      ADD HABIT MODAL
 ===================================================== -->
 
-<div
-    id="addModal"
-    class="modal-overlay"
->
-
+<div id="addModal" class="modal-overlay">
     <div class="modal">
-
-
         <div class="modal-header">
-
-            <h2>
-                ➕ Add New Habit
-            </h2>
-
-            <button
-                class="modal-close"
-                onclick="closeAddModal()"
-            >
-                ×
-            </button>
-
+            <h2>➕ Add New Habit</h2>
+            <button class="modal-close" onclick="closeAddModal()">×</button>
         </div>
 
-
         <div class="form-group">
-
-            <label>
-                Habit Name
-            </label>
-
+            <label>Habit Name</label>
             <input
                 type="text"
                 id="taskName"
-                placeholder="Example: Reading"
+                placeholder="Example: Morning Meditation, 5km Run, Reading"
             >
-
         </div>
 
-
         <div class="form-row">
-
-
             <div class="form-group">
-
-                <label>
-                    Icon
-                </label>
-
+                <label>Icon</label>
                 <input
                     type="text"
                     id="taskIcon"
                     value="🎯"
                     maxlength="4"
                 >
-
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Target
-                </label>
-
+                <label>Target</label>
                 <input
                     type="number"
                     id="taskTarget"
                     value="1"
                     min="1"
                 >
-
             </div>
 
-
             <div class="form-group">
-
-                <label>
-                    Unit
-                </label>
-
+                <label>Unit</label>
                 <input
                     type="text"
                     id="taskUnit"
                     value="time"
                 >
-
             </div>
-
         </div>
-
 
         <div class="modal-actions">
-
-            <button
-                class="btn cancel-btn"
-                onclick="closeAddModal()"
-            >
-                Cancel
-            </button>
-
-
-            <button
-                class="btn add-btn"
-                onclick="addTask()"
-            >
-                Add Habit
-            </button>
-
+            <button class="btn cancel-btn" onclick="closeAddModal()">Cancel</button>
+            <button class="btn add-btn" onclick="addTask()">Add Habit</button>
         </div>
-
     </div>
-
 </div>
 
 
-
 <!-- =====================================================
-     TOAST
+     EDIT HABIT MODAL
 ===================================================== -->
 
-<div
-    id="toast"
-    class="toast"
-></div>
+<div id="editModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>✏️ Edit Habit</h2>
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+        </div>
 
+        <div class="form-group">
+            <label>Habit Name</label>
+            <input
+                type="text"
+                id="editTaskName"
+                placeholder="Habit Name"
+            >
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Icon</label>
+                <input
+                    type="text"
+                    id="editTaskIcon"
+                    value="🎯"
+                    maxlength="4"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Target</label>
+                <input
+                    type="number"
+                    id="editTaskTarget"
+                    value="1"
+                    min="1"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Unit</label>
+                <input
+                    type="text"
+                    id="editTaskUnit"
+                    value="time"
+                >
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+            <button class="btn add-btn" onclick="saveEditedHabit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     BACKUP & RESTORE MODAL
+===================================================== -->
+
+<div id="backupModal" class="modal-overlay">
+    <div class="modal backup-modal">
+        <div class="modal-header">
+            <h2>💾 Backup &amp; Restore Data</h2>
+            <button class="modal-close" onclick="closeBackupModal()">×</button>
+        </div>
+
+        <p class="modal-desc" style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
+            Securely save all your habits, streaks, completions, goals, and journal logs or restore them anytime.
+        </p>
+
+        <div class="backup-options">
+            <div class="backup-card">
+                <div class="backup-icon">📤</div>
+                <div class="backup-info">
+                    <strong>Export JSON Backup</strong>
+                    <p>Download a complete snapshot of all habit data.</p>
+                </div>
+                <button class="btn backup-action-btn" onclick="exportJSONBackup()">Download Backup</button>
+            </div>
+
+            <div class="backup-card">
+                <div class="backup-icon">📥</div>
+                <div class="backup-info">
+                    <strong>Restore from Backup</strong>
+                    <p>Restore habits and streaks from a JSON backup file.</p>
+                </div>
+                <label class="btn backup-action-btn secondary file-input-label" style="text-align:center; cursor:pointer;">
+                    Choose File &amp; Restore
+                    <input type="file" id="backupFileInput" accept=".json" onchange="importJSONBackup(event)" style="display:none;">
+                </label>
+            </div>
+
+            <div class="backup-card">
+                <div class="backup-icon">📊</div>
+                <div class="backup-info">
+                    <strong>Export Excel File</strong>
+                    <p>Spreadsheet view of your full yearly habit records.</p>
+                </div>
+                <button class="btn backup-action-btn excel" onclick="exportToExcel()">Download Excel (.xlsx)</button>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn cancel-btn" onclick="closeBackupModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     TOAST NOTIFICATIONS
+===================================================== -->
+
+<div id="toast" class="toast"></div>
 
 
 <script src="script.js"></script>

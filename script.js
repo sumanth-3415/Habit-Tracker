@@ -5215,11 +5215,10 @@ function renderYearSidebar() {
 
 function initTheme() {
     const savedTheme = localStorage.getItem("myHabitTracker_theme");
-    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-        document.body.classList.add("dark");
-    } else {
+    if (savedTheme === "light") {
         document.body.classList.remove("dark");
+    } else {
+        document.body.classList.add("dark");
     }
     updateThemeIcon();
 }
