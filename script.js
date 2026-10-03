@@ -5209,6 +5209,293 @@ function renderYearSidebar() {
    MAIN RENDER
 ========================================================= */
 
+/* =========================================================
+   THEME (DARK / LIGHT MODE)
+========================================================= */
+
+function initTheme() {
+    const savedTheme = localStorage.getItem("myHabitTracker_theme");
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+        document.body.classList.add("dark");
+    } else {
+        document.body.classList.remove("dark");
+    }
+    updateThemeIcon();
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.toggle("dark");
+    try {
+        localStorage.setItem("myHabitTracker_theme", isDark ? "dark" : "light");
+    } catch (e) {}
+    updateThemeIcon();
+    showToast(isDark ? "Dark mode enabled 🌙" : "Light mode enabled ☀️");
+}
+
+function updateThemeIcon() {
+    const btn = document.getElementById("themeToggleBtn");
+    if (!btn) return;
+    const isDark = document.body.classList.contains("dark");
+    btn.innerHTML = isDark ? "☀️ Light" : "🌙 Dark";
+    btn.setAttribute("title", isDark ? "Switch to Light Mode" : "Switch to Dark Mode");
+}
+
+
+/* =========================================================
+   APP TABS NAVIGATION
+========================================================= */
+
+let currentTab = "habits";
+
+function switchTab(tabName) {
+    currentTab = tabName;
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabName);
+    });
+
+    document.querySelectorAll(".tab-pane").forEach(pane => {
+        pane.classList.toggle("active", pane.id === `tab-${tabName}`);
+    });
+
+    try {
+        localStorage.setItem("myHabitTracker_tab", tabName);
+    } catch (e) {}
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+/* =========================================================
+   TODAY QUICK CHECKLIST
+========================================================= */
+
+function renderTodayChecklist() {
+    const container = document.getElementById("todayChecklistContainer");
+    if (!container) return;
+
+    if (!data.tasks || data.tasks.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const today = new Date();
+    const todayStr = todayKey();
+    const formattedToday = today.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+    });
+
+    let completedCount = 0;
+    data.tasks.forEach(task => {
+        if (task.completions && task.completions[todayStr]) {
+            completedCount++;
+        }
+    });
+
+    const percent = Math.round((completedCount / data.tasks.length) * 100);
+
+    let html = `
+        <div class="today-check-card">
+            <div class="today-check-header">
+                <div class="today-check-title">
+                    <span class="today-badge">⚡ Quick Check-In</span>
+                    <strong>${formattedToday}</strong>
+                </div>
+                <div class="today-check-status">
+                    <span>${completedCount}/${data.tasks.length} Done (${percent}%)</span>
+                </div>
+            </div>
+            <div class="today-check-progress">
+                <div class="today-check-progress-bar" style="width: ${percent}%;"></div>
+            </div>
+            <div class="today-pills-row">
+    `;
+
+    data.tasks.forEach(task => {
+        const isDone = Boolean(task.completions && task.completions[todayStr]);
+        html += `
+            <button
+                class="today-pill ${isDone ? "completed" : ""}"
+                onclick="toggleDay('${task.id}', '${todayStr}')"
+                title="Click to toggle today for ${escapeHTML(task.name)}"
+            >
+                <span class="pill-check">${isDone ? "✓" : "○"}</span>
+                <span class="pill-icon">${task.icon || "🎯"}</span>
+                <span class="pill-name">${escapeHTML(task.name)}</span>
+            </button>
+        `;
+    });
+
+    html += `
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
+
+
+/* =========================================================
+   EDIT HABIT
+========================================================= */
+
+let editingTaskId = null;
+
+function openEditModal(taskId) {
+    const task = data.tasks.find(item => item.id === taskId);
+    if (!task) return;
+
+    editingTaskId = taskId;
+    document.getElementById("editTaskName").value = task.name;
+    document.getElementById("editTaskIcon").value = task.icon || "🎯";
+    document.getElementById("editTaskTarget").value = task.target || 1;
+    document.getElementById("editTaskUnit").value = task.unit || "time";
+
+    document.querySelectorAll(".menu-dropdown").forEach(m => m.classList.remove("show"));
+
+    const modal = document.getElementById("editModal");
+    if (modal) modal.classList.add("show");
+}
+
+function closeEditModal() {
+    editingTaskId = null;
+    const modal = document.getElementById("editModal");
+    if (modal) modal.classList.remove("show");
+}
+
+function saveEditedHabit() {
+    if (!editingTaskId) return;
+    const task = data.tasks.find(item => item.id === editingTaskId);
+    if (!task) return;
+
+    const name = document.getElementById("editTaskName").value.trim();
+    const icon = document.getElementById("editTaskIcon").value.trim() || "🎯";
+    const target = Number(document.getElementById("editTaskTarget").value) || 1;
+    const unit = document.getElementById("editTaskUnit").value.trim() || "time";
+
+    if (!name) {
+        showToast("Please enter a habit name.");
+        return;
+    }
+
+    task.name = name;
+    task.icon = icon;
+    task.target = target;
+    task.unit = unit;
+
+    saveData();
+    closeEditModal();
+    render();
+    showToast("Habit updated successfully ✏️");
+}
+
+
+/* =========================================================
+   BACKUP & RESTORE
+========================================================= */
+
+function openBackupModal() {
+    const modal = document.getElementById("backupModal");
+    if (modal) modal.classList.add("show");
+}
+
+function closeBackupModal() {
+    const modal = document.getElementById("backupModal");
+    if (modal) modal.classList.remove("show");
+}
+
+function exportJSONBackup() {
+    const exportObject = {
+        app: "MyHabitTracker",
+        version: "3.0",
+        exportDate: new Date().toISOString(),
+        tasksCount: data.tasks.length,
+        data: data
+    };
+
+    const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
+    const downloadAnchor = document.createElement("a");
+    const dateStr = todayKey();
+    downloadAnchor.setAttribute("href", jsonString);
+    downloadAnchor.setAttribute("download", `Habit_Tracker_Backup_${dateStr}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+
+    showToast("JSON Backup downloaded to your device 💾");
+}
+
+function triggerBackupUpload() {
+    const input = document.getElementById("backupFileInput");
+    if (input) {
+        input.value = "";
+        input.click();
+    }
+}
+
+function importJSONBackup(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const parsed = JSON.parse(e.target.result);
+            let importedData = null;
+
+            if (parsed && parsed.data && Array.isArray(parsed.data.tasks)) {
+                importedData = parsed.data;
+            } else if (parsed && Array.isArray(parsed.tasks)) {
+                importedData = parsed;
+            }
+
+            if (!importedData) {
+                showToast("Invalid backup file structure ❌");
+                return;
+            }
+
+            if (!confirm(`Restore ${importedData.tasks.length} habits from this backup? Current habits will be replaced.`)) {
+                return;
+            }
+
+            data = importedData;
+            if (!data.journal) data.journal = {};
+            data.tasks.forEach(task => {
+                if (!task.completions) task.completions = {};
+                ensureReminder(task);
+                ensureGoal(task);
+            });
+
+            saveData();
+            render();
+            closeBackupModal();
+            showToast("Backup restored successfully! 🎉");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to read backup file ❌");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function updateNotificationButton() {
+    const btn = document.querySelector(".reminder-permission-btn");
+    if (!btn) return;
+    if ("Notification" in window && Notification.permission === "granted") {
+        btn.innerHTML = "✓ Notifications Active";
+        btn.classList.add("granted");
+        btn.disabled = true;
+    }
+}
+
+
+/* =========================================================
+   MAIN RENDER
+========================================================= */
+
 function render() {
 
     renderMonthTitle();
@@ -5233,7 +5520,11 @@ function render() {
 
     renderTasks();
 
+    renderTodayChecklist();
+
     renderYearSidebar();
+
+    updateNotificationButton();
 
 }
 
@@ -5241,6 +5532,8 @@ function render() {
 /* =========================================================
    INITIALIZATION
 ========================================================= */
+
+initTheme();
 
 data.tasks.forEach(
     task => {
@@ -5265,6 +5558,12 @@ ensureJournal();
 saveData();
 
 initializeJournal();
+
+
+const savedTab = localStorage.getItem("myHabitTracker_tab");
+if (savedTab) {
+    switchTab(savedTab);
+}
 
 
 render();
